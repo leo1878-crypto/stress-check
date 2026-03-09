@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -288,7 +289,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 .bm-ri{font-size:14px;line-height:1.6;color:var(--text);padding-left:12px;border-left:2.5px solid var(--accent);margin-bottom:12px;font-style:italic}
 
 </style>
-<script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
 
@@ -1756,20 +1756,12 @@ function selectPlan(p){
 }
 
 function handlePay(){
-  const priceIds={
-    base:'price_1T93LDB51Ap7angfrktcHBAw',
-    full:'price_1T93M4B51Ap7angf4QKruoeY',
-    yearly:'price_1T93PBB51Ap7angfVT4Wn3y7'
+  const links={
+    base:'https://buy.stripe.com/dRm7sKaf8eb95Tm3Q7dwc08',
+    full:'https://buy.stripe.com/6oUcN40Ey6IH3Le2M3dwc09',
+    yearly:'https://buy.stripe.com/aFa4gy4UO6IHftW1HZdwc0a'
   };
-  const stripe=Stripe('pk_live_51JUALNB51Ap7angfPXf8IMXV6G1XjiA1AdCy9z6apSb7QeZupfsM2Jjbvf8TZZcCKNxWQkxDTv2q50HtWY2iCp2100Ps6tAZLM');
-  stripe.redirectToCheckout({
-    lineItems:[{price:priceIds[selectedPlan],quantity:1}],
-    mode:'subscription',
-    successUrl:window.location.origin+'?sub='+selectedPlan+'&status=success',
-    cancelUrl:window.location.origin+'?status=cancel'
-  }).then(function(result){
-    if(result.error){alert(result.error.message);}
-  });
+  window.location.href=links[selectedPlan];
 }
 
 // ============================================================
