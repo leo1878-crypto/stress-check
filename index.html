@@ -288,6 +288,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 .bm-ri{font-size:14px;line-height:1.6;color:var(--text);padding-left:12px;border-left:2.5px solid var(--accent);margin-bottom:12px;font-style:italic}
 
 </style>
+<script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
 
@@ -1265,6 +1266,14 @@ function lsj(k,v){if(v===undefined){const r=ls(k);return r?JSON.parse(r):null}ls
 // INIT
 // ============================================================
 function init(){
+  // Handle Stripe return
+  const urlParams=new URLSearchParams(window.location.search);
+  if(urlParams.get('status')==='success'&&urlParams.get('sub')){
+    const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
+    d.sub=urlParams.get('sub');
+    lsj('data',d);
+    window.history.replaceState({},'',window.location.pathname);
+  }
   const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
   lsj('data',d);
   if(Object.keys(d.days).length===0){
@@ -1747,15 +1756,20 @@ function selectPlan(p){
 }
 
 function handlePay(){
-  // Stripe integration placeholder
-  const prices={base:'$9.90/mo',full:'$14.90/mo',yearly:'$99/year'};
-  alert('Redirecting to Stripe checkout for '+prices[selectedPlan]+'...\n\n(Stripe integration will be connected during deployment)');
-  // For demo: activate subscription
-  const d=lsj('data');
-  d.sub=selectedPlan;
-  lsj('data',d);
-  closePaywall();
-  goTab('today');
+  const priceIds={
+    base:'price_1T93LDB51Ap7angfrktcHBAw',
+    full:'price_1T93M4B51Ap7angf4QKruoeY',
+    yearly:'price_1T93PBB51Ap7angfVT4Wn3y7'
+  };
+  const stripe=Stripe('pk_live_51JUALNB51Ap7angfPXf8IMXV6G1XjiA1AdCy9z6apSb7QeZupfsM2Jjbvf8TZZcCKNxWQkxDTv2q50HtWY2iCp2100Ps6tAZLM');
+  stripe.redirectToCheckout({
+    lineItems:[{price:priceIds[selectedPlan],quantity:1}],
+    mode:'subscription',
+    successUrl:window.location.origin+'?sub='+selectedPlan+'&status=success',
+    cancelUrl:window.location.origin+'?status=cancel'
+  }).then(function(result){
+    if(result.error){alert(result.error.message);}
+  });
 }
 
 // ============================================================
