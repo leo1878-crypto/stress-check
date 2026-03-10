@@ -27,10 +27,18 @@ pintrk('page');
 <link rel="manifest" href="manifest.json">
 <title>Where Does Your Body Hold Stress? | Dr. D'Angeli</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const _sb=window.supabase.createClient(
+  'https://aunfwhgwblkirmvcnfus.supabase.co',
+  'sb_publishable_tRfMLD1wY_p46avurE0b7g_b5rSRWGB'
+);
+</script>
 <style>
 :root {
   --bg:#0C0B0F; --bg2:#141318; --bg3:#1C1B22; --surface:#23222A; --border:#2E2D36;
-  --text:#E8E6EF; --text2:#9B99A7; --text3:#6B697A;
+  --text:#E8E6EF; --text2:#C8C6D2; --text3:#9895A5;
   --accent:#C9A87C; --accent2:#E8D5B5; --accent-dim:rgba(201,168,124,0.12);
   --red:#D4736E; --red-dim:rgba(212,115,110,0.1); --red-bg:rgba(212,115,110,0.06);
   --amber:#D4A86E; --amber-dim:rgba(212,168,110,0.1); --amber-bg:rgba(212,168,110,0.06);
@@ -436,6 +444,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
         <div style="font-size:10px;color:var(--text3);line-height:1.5;max-width:320px;margin:0 auto">This is a self-assessment tool based on clinical research. It is not a medical diagnosis. Consult a healthcare professional for medical concerns.</div>
         <div style="font-size:9px;color:var(--text3);margin-top:8px;letter-spacing:.5px">© 2026 Dr. Tatiana D'Angeli. All rights reserved.</div>
         <a href="https://www.instagram.com/dr.dangeli.tatiana" target="_blank" style="color:var(--accent);text-decoration:none;font-size:11px;display:inline-block;margin-top:4px">@dr.dangeli.tatiana</a>
+        <div style="margin-top:6px"><a href="mailto:support@drdangeli.com" style="color:var(--text3);font-size:10px;text-decoration:none;">Need help? support@drdangeli.com</a></div>
       </div>
     </div>
   </div>
@@ -485,6 +494,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
         @dr.dangeli.tatiana
       </a>
+      <div style="margin-top:8px"><a href="mailto:support@drdangeli.com" style="color:var(--text3);font-size:10px;text-decoration:none;">Need help? support@drdangeli.com</a></div>
     </div>
   </div>
 
@@ -602,6 +612,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
     <button class="btn btn-primary" style="margin-top:16px" onclick="handlePay()">Subscribe</button>
     <button class="btn btn-ghost" onclick="closePaywall()">Not now</button>
     <div style="text-align:center;font-size:11px;color:var(--text3);margin-top:12px;line-height:1.5;">Cancel anytime · No auto-renewal</div>
+    <div style="text-align:center;margin-top:8px"><a href="mailto:support@drdangeli.com" style="color:var(--text3);font-size:11px;text-decoration:none;">Questions? support@drdangeli.com</a></div>
     <div class="pw-email" id="pw-email-block">
       <div class="pw-em-title">Not ready yet? Leave your email and we'll send you a mini-report based on your data</div>
       <div class="pw-email-row">
@@ -867,8 +878,9 @@ function bmRender(){
 
 function bmShare(){
   gev('bodymap_shared');
-  const url=window.location.href;
-  const text='Find out where stress lives in your body. Body scan by a clinical psychologist:';
+  const refCode=getRefCode();
+  const url=window.location.origin+'/?ref='+refCode;
+  const text='This helped me understand my stress patterns. Try it — takes 2 minutes:';
   if(navigator.share){
     navigator.share({title:'Where Does Your Body Hold Stress?',text:text,url:url}).catch(()=>{})
   } else {
@@ -882,7 +894,47 @@ function bmShare(){
 }
 
 function bmSave(){
-  alert('Take a screenshot to save your body map result');
+  // Replace the save button with email form
+  const btns=document.querySelector('.bm-share-btn').parentElement;
+  const saveBtn=btns.querySelectorAll('button')[1];
+  saveBtn.outerHTML='<div id="bm-save-wrap" style="flex:1;display:flex;flex-direction:column;gap:6px">'+
+    '<input type="email" id="bm-email" placeholder="your@email.com" autocomplete="email" autocapitalize="off" '+
+    'style="padding:12px;border:1.5px solid rgba(255,255,255,.25);background:transparent;color:var(--text);'+
+    'border-radius:10px;font-family:var(--sans);font-size:14px;outline:none;">'+
+    '<button onclick="bmSaveEmail()" style="padding:12px;background:var(--accent);color:var(--bg);border:none;'+
+    'border-radius:10px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer">Save my map</button></div>';
+  document.getElementById('bm-email').focus();
+}
+
+async function bmSaveEmail(){
+  const inp=document.getElementById('bm-email');
+  const email=inp.value.trim();
+  if(!email||!email.includes('@')){inp.style.borderColor='var(--red)';return;}
+  inp.disabled=true;
+  gev('email_captured_bodymap');
+
+  // Store email locally
+  const d=lsj('data');d.email=email;lsj('data',d);
+
+  // Register via Supabase magic link
+  try{
+    const{error}=await _sb.auth.signInWithOtp({
+      email:email,
+      options:{emailRedirectTo:window.location.origin+'/'}
+    });
+    const wrap=document.getElementById('bm-save-wrap');
+    if(!error){
+      wrap.innerHTML='<div style="text-align:center;padding:12px;font-size:13px;color:var(--green);">'+
+        '✓ Check your email — we sent you a save link</div>';
+    } else {
+      wrap.innerHTML='<div style="text-align:center;padding:12px;font-size:13px;color:var(--accent);">'+
+        '✓ We\'ll send your results to '+email+'</div>';
+    }
+  }catch(e){
+    document.getElementById('bm-save-wrap').innerHTML=
+      '<div style="text-align:center;padding:12px;font-size:13px;color:var(--accent);">'+
+      '✓ We\'ll send your results to '+email+'</div>';
+  }
 }
 
 function bmAnalyze(zones){
@@ -1815,9 +1867,11 @@ function savePwEmail(){
   d.email=email;
   lsj('data',d);
   g('pw-email-block').innerHTML='<div style="text-align:center;font-size:13px;color:var(--green);padding:12px;">✓ We\'ll send your mini-report to '+email+'</div>';
-  // Analytics event
-  if(typeof ym!=='undefined')ym(0,'reachGoal','email_captured');
   gev('email_captured');
+  // Also register in Supabase if not already
+  if(!_sbUser){
+    _sb.auth.signInWithOtp({email:email,options:{emailRedirectTo:window.location.origin+'/'}}).catch(()=>{});
+  }
 }
 
 // ============================================================
@@ -1861,6 +1915,77 @@ function checkRef(){
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
+
+// ============================================================
+// SUPABASE AUTH & DATA SYNC
+// ============================================================
+let _sbUser=null;
+
+_sb.auth.onAuthStateChange(async(event,session)=>{
+  if(event==='SIGNED_IN'&&session){
+    _sbUser=session.user;
+    gev('user_signed_in');
+
+    // Sync body map data to Supabase
+    try{
+      const bmRaw=localStorage.getItem('stress_check_final_bodymap');
+      if(bmRaw){
+        await _sb.from('body_maps').insert({
+          user_id:session.user.id,
+          data:JSON.parse(bmRaw)
+        });
+      }
+    }catch(e){console.log('BM sync:',e)}
+
+    // Sync checkin data to Supabase
+    try{
+      const d=lsj('data');
+      if(d&&d.days){
+        const dayKeys=Object.keys(d.days);
+        for(const dk of dayKeys){
+          await _sb.from('checkins').upsert({
+            user_id:session.user.id,
+            created_at:dk+'T12:00:00Z',
+            day_number:dayKeys.indexOf(dk)+1,
+            answers:d.answers&&d.answers[dk]?d.answers[dk]:{},
+            ns_state:d.days[dk],
+            body_zones:[]
+          },{onConflict:'user_id,created_at',ignoreDuplicates:true});
+        }
+      }
+
+      // Save referral info
+      if(d&&d.ref){
+        const{data:refProfile}=await _sb.from('profiles').select('id').eq('referral_code',d.ref).single();
+        if(refProfile){
+          await _sb.from('profiles').update({referred_by:refProfile.id}).eq('id',session.user.id);
+        }
+      }
+
+      // Get server-side referral code for this user
+      const{data:myProfile}=await _sb.from('profiles').select('referral_code').eq('id',session.user.id).single();
+      if(myProfile&&myProfile.referral_code){
+        ls('refcode',myProfile.referral_code);
+      }
+    }catch(e){console.log('Sync:',e)}
+  }
+  if(event==='SIGNED_OUT'){_sbUser=null;}
+});
+
+// Check for magic link token in URL hash
+(async()=>{
+  if(window.location.hash&&window.location.hash.includes('access_token')){
+    try{
+      const{data,error}=await _sb.auth.getSession();
+      if(!error&&data.session){
+        window.history.replaceState({},'',window.location.pathname);
+      }
+    }catch(e){}
+  }
+  // Also check existing session
+  const{data}=await _sb.auth.getSession();
+  if(data&&data.session){_sbUser=data.session.user;}
+})();
 
 // ============================================================
 // START
