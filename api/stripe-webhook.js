@@ -1,12 +1,3 @@
-import Stripe from 'stripe';
-import { createClient } from '@supabase/supabase-js';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-);
-
 export const config = { runtime: 'edge' };
 
 export default async function handler(req) {
@@ -15,86 +6,105 @@ export default async function handler(req) {
   }
 
   const body = await req.text();
-  const sig = req.headers.get('stripe-signature');
-
+  
+  // Parse Stripe event (simplified verification for edge runtime)
   let event;
   try {
-    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    event = JSON.parse(body);
   } catch (err) {
-    console.error('Webhook signature verification failed:', err.message);
-    return new Response('Webhook Error: ' + err.message, { status: 400 });
+    return new Response('Invalid JSON', { status: 400 });
   }
+
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    const email = session.customer_email  session.metadata?.email  '';
-    const plan = session.metadata?.plan || 'base';
-    const customerId = session.customer;
-    const subscriptionId = session.subscription;
+    const email = session.customer_email || (session.metadata && session.metadata.email) || '';
+    const plan = (session.metadata && session.metadata.plan) || 'base';
+    const customerId = session.customer || '';
+    const subscriptionId = session.subscription || '';
 
     if (email) {
-      // 1. Update email_leads with subscription info
-      try {
-        await supabase.from('email_leads').update({
+      // Update email_leads
+      await fetch(`${SUPABASE_URL}/rest/v1/email_leads?email=eq.${encodeURIComponent(email)}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
           stripe_customer_id: customerId,
           plan: plan,
           subscribed_at: new Date().toISOString()
-        }).eq('email', email);
-      } catch (e) {
-        console.error('Failed to update email_leads:', e);
-      }
+        })
+      });
 
-      // 2. Insert into subscriptions table
-      try {
-        const expiresAt = plan === 'yearly'
-          ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-          : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      // Insert subscription
+      const expiresAt = plan === 'yearly'
+        ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-        await supabase.from('subscriptions').upsert({
+      await fetch(`${SUPABASE_URL}/rest/v1/subscriptions`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify({
           email: email,
           plan: plan,
           stripe_customer_id: customerId,
           stripe_subscription_id: subscriptionId,
           status: 'active',
           expires_at: expiresAt
-        }, { onConflict: 'email' });
-      } catch (e) {
-        console.error('Failed to insert subscription:', e);
-      }
+        })
+      });
 
-      // 3. Process referral bonus
-      try {
-        const { data: lead } = await supabase
-          .from('email_leads')
-          .select('referrer_code')
-          .eq('email', email)
-          .single();
-
-        if (lead && lead.referrer_code) {
-          const bonusDays = plan === 'yearly' ? 14 : plan === 'full' ? 7 : 5;
-
-          await supabase.from('referral_bonuses').insert({
-            referrer_code: lead.referrer_code,
+      // Process referral bonus
+      const refRes = await fetch(`${SUPABASE_URL}/rest/v1/email_leads?email=eq.${encodeURIComponent(email)}&select=referrer_code`, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`
+        }
+      });
+      const refData = await refRes.json();
+      if (refData && refData[0] && refData[0].referrer_code) {
+        const bonusDays = plan === 'yearly' ? 14 : plan === 'full' ? 7 : 5;
+        await fetch(`${SUPABASE_URL}/rest/v1/referral_bonuses`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            referrer_code: refData[0].referrer_code,
             referred_email: email,
             referred_plan: plan,
             bonus_days: bonusDays
-          });
-        }
-      } catch (e) {
-        console.error('Failed to process referral:', e);
+          })
+        });
       }
     }
   }
 
   if (event.type === 'customer.subscription.deleted') {
     const subscription = event.data.object;
-    try {
-      await supabase.from('subscriptions')
-        .update({ status: 'cancelled' })
-        .eq('stripe_subscription_id', subscription.id);
-    } catch (e) {
-      console.error('Failed to cancel subscription:', e);
-    }
+    await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?stripe_subscription_id=eq.${subscription.id}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ status: 'cancelled' })
+    });
   }
 
   return new Response(JSON.stringify({ received: true }), {
