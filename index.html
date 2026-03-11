@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -915,7 +914,7 @@ async function bmSaveEmail(){
   gev('email_captured_bodymap');
 
   // Store email locally
-  const d=lsj('data');d.email=email;lsj('data',d);
+  const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};d.email=email;lsj('data',d);
 
   // Collect body map data for email series
   const bmRaw=localStorage.getItem('stress_check_final_bodymap');
@@ -1397,7 +1396,7 @@ function showScreen(id){
 // TODAY
 // ============================================================
 function renderToday(){
-  const d=lsj('data');
+  const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
   const today=getTodayStr();
 
   // Date
@@ -1479,7 +1478,7 @@ function renderNotify(d){
 function requestNotify(){
   if('Notification' in window){
     Notification.requestPermission().then(p=>{
-      const d=lsj('data');d.notifClosed=true;lsj('data',d);renderNotify(d);
+      const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};d.notifClosed=true;lsj('data',d);renderNotify(d);
     });
   }
 }
@@ -1516,7 +1515,7 @@ function renderTracker(d){
 // CHECKIN
 // ============================================================
 function startCheckin(){
-  const d=lsj('data');
+  const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
   const today=getTodayStr();
   if(d.days[today]){showResult(d.days[today]);return;}
   // Check paywall
@@ -1613,7 +1612,7 @@ function showPwaPopup(state){
 
 function closePwaPopup(saved){
   g('pwa-popup').classList.remove('active');
-  const d=lsj('data');d.pwaClosed=true;lsj('data',d);
+  const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};d.pwaClosed=true;lsj('data',d);
   const state=g('pwa-popup')._state;
   if(state)showResult(state);
 }
@@ -1624,7 +1623,7 @@ function closePwaPopup(saved){
 function showResult(stateKey){
   showScreen('scr-results');
   const st=states[stateKey];
-  const d=lsj('data');
+  const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
   const hasSub=!!d.sub;
   const plan=d.sub||'base';
 
@@ -1792,7 +1791,7 @@ function getRoutineContent(state){
 // PRACTICE TAB
 // ============================================================
 function renderPractice(){
-  const d=lsj('data');
+  const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
   const today=getTodayStr();
   const el=g('practice-content');
   if(!d.days[today]){
@@ -1813,7 +1812,7 @@ function showPracticeAnyway(){ls('practice_'+getTodayStr(),null);showPracticeFor
 function showPracticeForState(stateKey){
   const exList=exercises[stateKey];
   // Pick based on day number
-  const d=lsj('data');
+  const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
   const dayNum=Object.keys(d.days).length;
   const idx=(dayNum-1)%exList.length;
   const ex=exList[idx];
@@ -1873,7 +1872,7 @@ function handlePay(){
 function savePwEmail(){
   const email=g('pw-email-input').value.trim();
   if(!email||!email.includes('@')){g('pw-email-input').style.borderColor='var(--red)';return;}
-  const d=lsj('data');
+  const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
   d.email=email;
   lsj('data',d);
   g('pw-email-block').innerHTML='<div style="text-align:center;font-size:13px;color:var(--green);padding:12px;">✓ We\'ll send your mini-report to '+email+'</div>';
@@ -1907,7 +1906,7 @@ function savePwEmail(){
 // REFERRAL SYSTEM
 // ============================================================
 function renderReferralBlock(){
-  const d=lsj('data');
+  const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
   const el=g('r-referral');
   const refCode=getRefCode();
   const refUrl=window.location.origin+window.location.pathname+'?ref='+refCode;
@@ -1931,7 +1930,7 @@ function checkRef(){
   const params=new URLSearchParams(window.location.search);
   const ref=params.get('ref');
   if(ref){
-    const d=lsj('data');
+    const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
     if(!d.ref){d.ref=ref;lsj('data',d);}
     // Clean URL
     window.history.replaceState({},'',window.location.pathname);
@@ -1968,7 +1967,7 @@ _sb.auth.onAuthStateChange(async(event,session)=>{
 
     // Sync checkin data to Supabase
     try{
-      const d=lsj('data');
+      const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
       if(d&&d.days){
         const dayKeys=Object.keys(d.days);
         for(const dk of dayKeys){
@@ -2015,7 +2014,7 @@ _sb.auth.onAuthStateChange(async(event,session)=>{
   const params=new URLSearchParams(window.location.search);
   if(params.get('paid')==='true'){
     const plan=params.get('plan')||'base';
-    const d=lsj('data');
+    const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
     d.sub=plan;
     lsj('data',d);
     window.history.replaceState({},'',window.location.pathname);
