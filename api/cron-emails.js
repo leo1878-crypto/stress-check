@@ -1,6 +1,4 @@
-const res = await fetch('https://aunfwhgwblkirmvcnfus.supabase.co/rest/v1/users?select=*', {
-  headers: {
-    'apikey': process
+export const config = { runtime: 'node
 
 // ============================================================
 // EMAIL TEMPLATES
