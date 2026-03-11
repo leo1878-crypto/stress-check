@@ -1,5 +1,3 @@
-export const config = { runtime: 'nodejs' };
-
 // ============================================================
 // EMAIL TEMPLATES
 // ============================================================
@@ -62,9 +60,9 @@ function wrapHtml(bodyText) {
 const DELAY_DAYS = [0, 2, 4, 6, 8];
 
 // ============================================================
-// MAIN HANDLER
+// MAIN HANDLER — Node.js Serverless Function (NOT Edge)
 // ============================================================
-export default async function handler(req) {
+export default async function handler(req, res) {
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const RESEND_KEY = process.env.RESEND_API_KEY;
@@ -75,16 +73,14 @@ export default async function handler(req) {
 
   try {
     // Get leads that need emails
-    const res = await fetch(
+    const dbRes = await fetch(
       `${SUPABASE_URL}/rest/v1/email_leads?email_number=lt.5&subscribed_at=is.null&select=*`,
       { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
     );
-    const leads = await res.json();
+    const leads = await dbRes.json();
 
     if (!leads || !Array.isArray(leads) || leads.length === 0) {
-      return new Response(JSON.stringify({ sent: 0, message: 'No emails to send' }), {
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return res.status(200).json({ sent: 0, message: 'No emails to send' });
     }
 
     for (const lead of leads) {
@@ -152,10 +148,8 @@ export default async function handler(req) {
       }
     }
   } catch (e) {
-    return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+    return res.status(500).json({ error: e.message });
   }
 
-  return new Response(JSON.stringify({ sent, errors, timestamp: now.toISOString() }), {
-    headers: { 'Content-Type': 'application/json' }
-  });
+  return res.status(200).json({ sent, errors, timestamp: now.toISOString() });
 }
