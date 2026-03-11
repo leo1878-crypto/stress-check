@@ -1,4 +1,6 @@
-export const config = { runtime: 'edge' };
+const res = await fetch('https://aunfwhgwblkirmvcnfus.supabase.co/rest/v1/users?select=*', {
+  headers: {
+    'apikey': process
 
 // ============================================================
 // EMAIL TEMPLATES
