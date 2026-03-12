@@ -7,7 +7,6 @@ export default async function handler(req) {
 
   const body = await req.text();
 
-  // Parse Stripe event (simplified verification for edge runtime)
   let event;
   try {
     event = JSON.parse(body);
@@ -33,9 +32,48 @@ export default async function handler(req) {
     const subscriptionId = session.subscription || '';
 
     if (email) {
-      // 1. Update email_leads with subscription info
+
+      // ============================================================
+      // STEP 1: Create user in Supabase Auth (so magic link works)
+      // ============================================================
+      let authUserId = null;
       try {
-        await fetch(`${SUPABASE_URL}/rest/v1/email_leads?email=eq.${encodeURIComponent(email)}`, {
+        const createRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: email,
+            email_confirm: true
+          })
+        });
+        const createData = await createRes.json();
+        
+        if (createData && createData.id) {
+          authUserId = createData.id;
+        } else {
+          // User already exists — find ID from profiles
+          const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?email=eq.${encodeURIComponent(email)}&select=id`, {
+            method: 'GET',
+            headers
+          });
+          const profiles = await profileRes.json();
+          if (profiles && profiles.length > 0) {
+            authUserId = profiles[0].id;
+          }
+        }
+      } catch (e) {
+        console.log('Auth user creation error:', e);
+      }
+
+      // ============================================================
+      // STEP 2: Upsert email_leads
+      // ============================================================
+      try {
+        const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/email_leads?email=eq.${encodeURIComponent(email)}`, {
           method: 'PATCH',
           headers,
           body: JSON.stringify({
@@ -46,11 +84,29 @@ export default async function handler(req) {
             updated_at: new Date().toISOString()
           })
         });
+        const patchData = await patchRes.json();
+        
+        if (!patchData || patchData.length === 0) {
+          await fetch(`${SUPABASE_URL}/rest/v1/email_leads`, {
+            method: 'POST',
+            headers: { ...headers, 'Prefer': 'return=minimal' },
+            body: JSON.stringify({
+              email: email,
+              stripe_customer_id: customerId,
+              stripe_subscription_id: subscriptionId,
+              plan: plan,
+              paid_at: new Date().toISOString(),
+              source: 'stripe_webhook'
+            })
+          });
+        }
       } catch (e) {
-        console.log('email_leads update error:', e);
+        console.log('email_leads upsert error:', e);
       }
 
-      // 2. Find user profile by email
+      // ============================================================
+      // STEP 3: Update or create profile
+      // ============================================================
       let userProfile = null;
       try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?email=eq.${encodeURIComponent(email)}&select=id,referred_by`, {
@@ -65,7 +121,6 @@ export default async function handler(req) {
         console.log('profile lookup error:', e);
       }
 
-      // 3. Update user profile with subscription
       if (userProfile) {
         try {
           await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userProfile.id}`, {
@@ -74,50 +129,70 @@ export default async function handler(req) {
             body: JSON.stringify({
               plan: plan,
               paid_at: new Date().toISOString(),
-              stripe_customer_id: customerId
+              stripe_customer_id: customerId,
+              subscription_status: 'active'
             })
           });
         } catch (e) {
           console.log('profile update error:', e);
         }
+      } else if (authUserId) {
+        try {
+          await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
+            method: 'POST',
+            headers: { ...headers, 'Prefer': 'return=minimal' },
+            body: JSON.stringify({
+              id: authUserId,
+              email: email,
+              plan: plan,
+              paid_at: new Date().toISOString(),
+              stripe_customer_id: customerId,
+              subscription_status: 'active',
+              referral_code: 'ns' + Math.random().toString(36).substr(2, 8)
+            })
+          });
+          userProfile = { id: authUserId, referred_by: null };
+        } catch (e) {
+          console.log('profile create error:', e);
+        }
+      }
 
-        // 4. REFERRAL BONUS: if this user was referred, credit the referrer
-        if (userProfile.referred_by) {
-          const bonusDays = plan === 'annual' ? 10 : plan === 'full' ? 5 : 3;
+      // ============================================================
+      // STEP 4: REFERRAL BONUS
+      // ============================================================
+      if (userProfile && userProfile.referred_by) {
+        const bonusDays = plan === 'annual' ? 10 : plan === 'full' ? 5 : 3;
 
-          try {
-            // Get referrer's current bonus info
-            const refRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userProfile.referred_by}&select=id,bonus_days,referral_count,bonus_cycle_used`, {
-              method: 'GET',
-              headers
-            });
-            const referrers = await refRes.json();
+        try {
+          const refRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userProfile.referred_by}&select=id,bonus_days,referral_count,bonus_cycle_used`, {
+            method: 'GET',
+            headers
+          });
+          const referrers = await refRes.json();
 
-            if (referrers && referrers.length > 0) {
-              const referrer = referrers[0];
-              const currentBonus = referrer.bonus_days || 0;
-              const currentCount = referrer.referral_count || 0;
-              const cycleUsed = referrer.bonus_cycle_used || 0;
+          if (referrers && referrers.length > 0) {
+            const referrer = referrers[0];
+            const currentBonus = referrer.bonus_days || 0;
+            const currentCount = referrer.referral_count || 0;
+            const cycleUsed = referrer.bonus_cycle_used || 0;
 
-              // Apply limit: max 30 bonus days per cycle
-              const canAdd = Math.min(bonusDays, 30 - cycleUsed);
+            const canAdd = Math.min(bonusDays, 30 - cycleUsed);
 
-              if (canAdd > 0) {
-                await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userProfile.referred_by}`, {
-                  method: 'PATCH',
-                  headers,
-                  body: JSON.stringify({
-                    bonus_days: currentBonus + canAdd,
-                    referral_count: currentCount + 1,
-                    bonus_cycle_used: cycleUsed + canAdd,
-                    updated_at: new Date().toISOString()
-                  })
-                });
-              }
+            if (canAdd > 0) {
+              await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userProfile.referred_by}`, {
+                method: 'PATCH',
+                headers,
+                body: JSON.stringify({
+                  bonus_days: currentBonus + canAdd,
+                  referral_count: currentCount + 1,
+                  bonus_cycle_used: cycleUsed + canAdd,
+                  updated_at: new Date().toISOString()
+                })
+              });
             }
-          } catch (e) {
-            console.log('referral bonus error:', e);
           }
+        } catch (e) {
+          console.log('referral bonus error:', e);
         }
       }
     }
