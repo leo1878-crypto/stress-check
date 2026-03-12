@@ -372,6 +372,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
       <div class="bm-hint" id="bmHint">Don't forget to check your back</div>
       <div class="bm-sel" id="bmSelC"></div>
       <button class="btn btn-primary" id="bmB1" disabled onclick="bmGo(2)">Continue</button>
+      
+      <!-- RESTORE ACCOUNT - visible on first screen -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-top:16px;text-align:center;">
+        <div style="font-size:13px;color:var(--text);margin-bottom:4px;font-weight:500;">Already subscribed?</div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.5;">Enter your email to restore your subscription and history</div>
+        <div style="display:flex;gap:8px;">
+          <input type="email" id="restore-email-bm" placeholder="your@email.com" autocomplete="email" autocapitalize="off" style="flex:1;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-family:var(--sans);outline:none;">
+          <button onclick="restoreAccount('restore-email-bm')" style="padding:10px 16px;border-radius:8px;border:none;background:var(--accent);color:var(--bg);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:var(--sans);">Restore</button>
+        </div>
+        <div id="restore-status-bm" style="font-size:11px;color:var(--text3);margin-top:8px;"></div>
+      </div>
+      
       <div style="text-align:center;padding:12px 0 4px;font-size:9px;color:var(--text3);letter-spacing:.5px">© 2026 Dr. Tatiana D'Angeli · Clinical Psychologist, PhD</div>
     </div>
 
@@ -446,15 +458,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
         <div style="font-size:9px;color:var(--text3);margin-top:8px;letter-spacing:.5px">© 2026 Dr. Tatiana D'Angeli. All rights reserved.</div>
         <a href="https://www.instagram.com/dr.dangeli.tatiana" target="_blank" style="color:var(--accent);text-decoration:none;font-size:11px;display:inline-block;margin-top:4px">@dr.dangeli.tatiana</a>
         <div style="margin-top:6px"><a href="mailto:support@drdangeli.com" style="color:var(--text3);font-size:10px;text-decoration:none;">Need help? support@drdangeli.com</a></div>
-        <div style="margin-top:12px"><button onclick="showRestoreLogin()" style="background:transparent;border:1px solid var(--border);color:var(--text2);font-size:12px;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:var(--sans);">Already have an account? Restore</button></div>
-        <div id="restore-login-intro" style="display:none;margin-top:12px;">
-          <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Enter your email to restore your data</div>
-          <div style="display:flex;gap:8px;max-width:320px;margin:0 auto;">
-            <input type="email" id="restore-email-intro" placeholder="your@email.com" style="flex:1;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-family:var(--sans);outline:none;">
-            <button onclick="restoreAccount('restore-email-intro')" style="padding:10px 16px;border-radius:8px;border:none;background:var(--accent);color:var(--bg);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">Send link</button>
-          </div>
-          <div id="restore-status-intro" style="font-size:11px;color:var(--text3);margin-top:8px;"></div>
-        </div>
       </div>
     </div>
   </div>
@@ -505,15 +508,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
         @dr.dangeli.tatiana
       </a>
       <div style="margin-top:8px"><a href="mailto:support@drdangeli.com" style="color:var(--text3);font-size:10px;text-decoration:none;">Need help? support@drdangeli.com</a></div>
-      <div style="margin-top:12px"><button onclick="showRestoreLogin()" style="background:transparent;border:1px solid var(--border);color:var(--text2);font-size:12px;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:var(--sans);">Already have an account? Restore</button></div>
-      <div id="restore-login-today" style="display:none;margin-top:12px;">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Enter your email to restore your data</div>
-        <div style="display:flex;gap:8px;max-width:320px;margin:0 auto;">
-          <input type="email" id="restore-email-today" placeholder="your@email.com" style="flex:1;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-family:var(--sans);outline:none;">
-          <button onclick="restoreAccount('restore-email-today')" style="padding:10px 16px;border-radius:8px;border:none;background:var(--accent);color:var(--bg);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">Send link</button>
-        </div>
-        <div id="restore-status-today" style="font-size:11px;color:var(--text3);margin-top:8px;"></div>
-      </div>
     </div>
   </div>
 
@@ -1987,10 +1981,6 @@ if('serviceWorker' in navigator){
 // ============================================================
 // RESTORE ACCOUNT
 // ============================================================
-function showRestoreLogin(){
-  document.querySelectorAll('[id^="restore-login-"]').forEach(el=>el.style.display=el.style.display==='none'?'block':'none');
-}
-
 async function restoreAccount(inputId){
   const email=g(inputId).value.trim();
   if(!email||!email.includes('@')){g(inputId).style.borderColor='var(--red)';return;}
