@@ -446,6 +446,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
         <div style="font-size:9px;color:var(--text3);margin-top:8px;letter-spacing:.5px">© 2026 Dr. Tatiana D'Angeli. All rights reserved.</div>
         <a href="https://www.instagram.com/dr.dangeli.tatiana" target="_blank" style="color:var(--accent);text-decoration:none;font-size:11px;display:inline-block;margin-top:4px">@dr.dangeli.tatiana</a>
         <div style="margin-top:6px"><a href="mailto:support@drdangeli.com" style="color:var(--text3);font-size:10px;text-decoration:none;">Need help? support@drdangeli.com</a></div>
+        <div style="margin-top:12px"><button onclick="showRestoreLogin()" style="background:transparent;border:1px solid var(--border);color:var(--text2);font-size:12px;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:var(--sans);">Already have an account? Restore</button></div>
+        <div id="restore-login-intro" style="display:none;margin-top:12px;">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Enter your email to restore your data</div>
+          <div style="display:flex;gap:8px;max-width:320px;margin:0 auto;">
+            <input type="email" id="restore-email-intro" placeholder="your@email.com" style="flex:1;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-family:var(--sans);outline:none;">
+            <button onclick="restoreAccount('restore-email-intro')" style="padding:10px 16px;border-radius:8px;border:none;background:var(--accent);color:var(--bg);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">Send link</button>
+          </div>
+          <div id="restore-status-intro" style="font-size:11px;color:var(--text3);margin-top:8px;"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -496,6 +505,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
         @dr.dangeli.tatiana
       </a>
       <div style="margin-top:8px"><a href="mailto:support@drdangeli.com" style="color:var(--text3);font-size:10px;text-decoration:none;">Need help? support@drdangeli.com</a></div>
+      <div style="margin-top:12px"><button onclick="showRestoreLogin()" style="background:transparent;border:1px solid var(--border);color:var(--text2);font-size:12px;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:var(--sans);">Already have an account? Restore</button></div>
+      <div id="restore-login-today" style="display:none;margin-top:12px;">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Enter your email to restore your data</div>
+        <div style="display:flex;gap:8px;max-width:320px;margin:0 auto;">
+          <input type="email" id="restore-email-today" placeholder="your@email.com" style="flex:1;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-family:var(--sans);outline:none;">
+          <button onclick="restoreAccount('restore-email-today')" style="padding:10px 16px;border-radius:8px;border:none;background:var(--accent);color:var(--bg);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">Send link</button>
+        </div>
+        <div id="restore-status-today" style="font-size:11px;color:var(--text3);margin-top:8px;"></div>
+      </div>
     </div>
   </div>
 
@@ -1967,6 +1985,29 @@ if('serviceWorker' in navigator){
 }
 
 // ============================================================
+// RESTORE ACCOUNT
+// ============================================================
+function showRestoreLogin(){
+  document.querySelectorAll('[id^="restore-login-"]').forEach(el=>el.style.display=el.style.display==='none'?'block':'none');
+}
+
+async function restoreAccount(inputId){
+  const email=g(inputId).value.trim();
+  if(!email||!email.includes('@')){g(inputId).style.borderColor='var(--red)';return;}
+  const statusId=inputId.replace('email','status');
+  g(statusId).textContent='Sending magic link...';
+  g(statusId).style.color='var(--accent)';
+  try{
+    await _sb.auth.signInWithOtp({email:email,options:{emailRedirectTo:window.location.origin+'/'}});
+    g(statusId).textContent='✓ Check your email! Click the link to restore your account.';
+    g(statusId).style.color='var(--green)';
+  }catch(e){
+    g(statusId).textContent='Error sending link. Try again.';
+    g(statusId).style.color='var(--red)';
+  }
+}
+
+// ============================================================
 // SUPABASE AUTH & DATA SYNC
 // ============================================================
 let _sbUser=null;
@@ -1975,21 +2016,47 @@ _sb.auth.onAuthStateChange(async(event,session)=>{
   if(event==='SIGNED_IN'&&session){
     _sbUser=session.user;
     gev('user_signed_in');
+    const userEmail=session.user.email;
 
-    // Sync body map data to Supabase
+    // === RESTORE SUBSCRIPTION FROM SUPABASE ===
     try{
-      const bmRaw=localStorage.getItem('stress_check_final_bodymap');
-      if(bmRaw){
-        await _sb.from('body_maps').insert({
-          user_id:session.user.id,
-          data:JSON.parse(bmRaw)
-        });
+      // Check email_leads for payment
+      const{data:lead}=await _sb.from('email_leads').select('plan,paid_at,stripe_customer_id').eq('email',userEmail).single();
+      if(lead&&lead.paid_at){
+        const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
+        d.sub=lead.plan||'base';
+        d.email=userEmail;
+        lsj('data',d);
       }
-    }catch(e){console.log('BM sync:',e)}
+    }catch(e){console.log('Sub restore:',e)}
 
-    // Sync checkin data to Supabase
+    // === RESTORE CHECKINS FROM SUPABASE ===
     try{
       const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
+      const localDays=Object.keys(d.days||{});
+
+      // Get checkins from Supabase
+      const{data:sbCheckins}=await _sb.from('checkins').select('created_at,ns_state').eq('user_id',session.user.id).order('created_at',{ascending:true});
+      
+      if(sbCheckins&&sbCheckins.length>0){
+        // Merge: Supabase data fills in any missing local days
+        let merged=false;
+        for(const ci of sbCheckins){
+          const dayKey=ci.created_at.slice(0,10);
+          if(!d.days[dayKey]&&ci.ns_state){
+            d.days[dayKey]=ci.ns_state;
+            merged=true;
+          }
+        }
+        if(merged){
+          // Recalculate streak
+          const sortedDays=Object.keys(d.days).sort();
+          if(sortedDays.length>0)d.lastDate=sortedDays[sortedDays.length-1];
+          lsj('data',d);
+        }
+      }
+
+      // Upload any local checkins that Supabase doesn't have
       if(d&&d.days){
         const dayKeys=Object.keys(d.days);
         for(const dk of dayKeys){
@@ -2003,8 +2070,22 @@ _sb.auth.onAuthStateChange(async(event,session)=>{
           },{onConflict:'user_id,created_at',ignoreDuplicates:true});
         }
       }
+    }catch(e){console.log('Checkin sync:',e)}
 
-      // Save referral info
+    // Sync body map data to Supabase
+    try{
+      const bmRaw=localStorage.getItem('stress_check_final_bodymap');
+      if(bmRaw){
+        await _sb.from('body_maps').insert({
+          user_id:session.user.id,
+          data:JSON.parse(bmRaw)
+        });
+      }
+    }catch(e){console.log('BM sync:',e)}
+
+    // Save referral info
+    try{
+      const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
       if(d&&d.ref){
         const{data:refProfile}=await _sb.from('profiles').select('id').eq('referral_code',d.ref).single();
         if(refProfile){
@@ -2019,7 +2100,10 @@ _sb.auth.onAuthStateChange(async(event,session)=>{
       }
       // Sync bonus days from referrals
       await syncReferralBonus(session.user.id);
-    }catch(e){console.log('Sync:',e)}
+    }catch(e){console.log('Ref sync:',e)}
+
+    // Re-render UI with restored data
+    try{init();}catch(e){}
   }
   if(event==='SIGNED_OUT'){_sbUser=null;}
 });
@@ -2034,10 +2118,10 @@ _sb.auth.onAuthStateChange(async(event,session)=>{
       }
     }catch(e){console.log('Auth hash:',e)}
   }
-  // Check for payment success
+  // Check for payment success (from Stripe redirect)
   const params=new URLSearchParams(window.location.search);
-  if(params.get('paid')==='true'){
-    const plan=params.get('plan')||'base';
+  if(params.get('status')==='success'&&params.get('sub')){
+    const plan=params.get('sub')||'base';
     const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
     d.sub=plan;
     lsj('data',d);
