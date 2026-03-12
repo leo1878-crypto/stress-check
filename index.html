@@ -19,6 +19,7 @@ function gev(name,params){gtag('event',name,params||{});}
 !function(e){if(!window.pintrk){window.pintrk=function(){window.pintrk.queue.push(Array.prototype.slice.call(arguments))};var n=window.pintrk;n.queue=[],n.version="3.0";var t=document.createElement("script");t.async=!0,t.src=e;var r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(t,r)}}("https://s.pinimg.com/ct/core.js");
 pintrk('load','2612365415394');
 pintrk('page');
+function pev(name,data){if(window.pintrk)pintrk('track',name,data||{});}
 </script>
 <noscript><img height="1" width="1" style="display:none;" alt="" src="https://ct.pinterest.com/v3/?event=init&tid=2612365415394&noscript=1"/></noscript>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -860,7 +861,7 @@ function bmBuildDur(){const c=document.getElementById('bmDurZones');c.innerHTML=
 function bmSDZ(btn,z,val){btn.parentElement.querySelectorAll('.dur-ch').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');BM.dur[z]=val;document.getElementById('bmB3').disabled=Object.keys(BM.dur).length<BM.zones.size}
 function bmTC(btn){btn.classList.toggle('sel')}
 
-function bmShowR(){BM.ctx=[];document.querySelectorAll('#bm3 .bm-ch.sel').forEach(b=>BM.ctx.push(b.textContent));document.querySelectorAll('.bm-step').forEach(s=>s.classList.remove('on'));document.getElementById('bmLoad').classList.add('on');gev('bodymap_show_result',{zones:Array.from(BM.zones).join(',')});setTimeout(()=>{document.querySelectorAll('.bm-step').forEach(s=>s.classList.remove('on'));document.getElementById('bm4').classList.add('on');bmRender();window.scrollTo({top:0,behavior:'smooth'})},2000)}
+function bmShowR(){BM.ctx=[];document.querySelectorAll('#bm3 .bm-ch.sel').forEach(b=>BM.ctx.push(b.textContent));document.querySelectorAll('.bm-step').forEach(s=>s.classList.remove('on'));document.getElementById('bmLoad').classList.add('on');gev('bodymap_show_result',{zones:Array.from(BM.zones).join(',')});pev('lead');setTimeout(()=>{document.querySelectorAll('.bm-step').forEach(s=>s.classList.remove('on'));document.getElementById('bm4').classList.add('on');bmRender();window.scrollTo({top:0,behavior:'smooth'})},2000)}
 
 function bmRender(){
   const zones=Array.from(BM.zones);const a=bmAnalyze(zones);bmDrawHM(zones);
@@ -911,7 +912,7 @@ async function bmSaveEmail(){
   const email=inp.value.trim();
   if(!email||!email.includes('@')){inp.style.borderColor='var(--red)';return;}
   inp.disabled=true;
-  gev('email_captured_bodymap');
+  gev('email_captured_bodymap');pev('signup');
 
   // Store email locally
   const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};d.email=email;lsj('data',d);
@@ -1331,9 +1332,8 @@ ventral:[
 // ============================================================
 const LS='stress_check_final_';
 const FREE_DAYS=3;
-const REF_FREE_DAYS=5;
 const PAYWALL_DAY=4;
-const REF_PAYWALL_DAY=6;
+const BONUS_LIMIT=30;
 
 let currentQ=0, answers=[], selectedPlan='yearly';
 
@@ -1351,7 +1351,7 @@ function init(){
     const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
     d.sub=urlParams.get('sub');
     lsj('data',d);
-    gev('payment_success',{plan:urlParams.get('sub')});
+    gev('payment_success',{plan:urlParams.get('sub')});pev('checkout',{value:urlParams.get('sub')==='annual'?99:urlParams.get('sub')==='full'?14.90:9.90,currency:'USD'});
     window.history.replaceState({},'',window.location.pathname);
   }
   const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
@@ -1457,8 +1457,8 @@ function renderFreeBanner(d){
   const el=g('free-days-banner');
   if(d.sub){el.innerHTML='';return;}
   const totalDays=Object.keys(d.days).length;
-  const isRef=!!d.ref;
-  const pw=isRef?REF_PAYWALL_DAY:PAYWALL_DAY;
+  const bonusDays=d.bonusDays||0;
+  const pw=PAYWALL_DAY+bonusDays;
   const left=pw-totalDays;
   if(totalDays>=pw){el.innerHTML='';return;}
   if(left<=1){
@@ -1520,8 +1520,8 @@ function startCheckin(){
   if(d.days[today]){showResult(d.days[today]);return;}
   // Check paywall
   const totalDays=Object.keys(d.days).length;
-  const isRef=!!d.ref;
-  const pw=isRef?REF_PAYWALL_DAY:PAYWALL_DAY;
+  const bonusDays=d.bonusDays||0;
+  const pw=PAYWALL_DAY+bonusDays;
   if(totalDays>=pw&&!d.sub){showPaywall();return;}
   currentQ=0;answers=[];
   gev('checkin_started',{day_number:totalDays+1});
@@ -1846,7 +1846,7 @@ function handlePay(){
     yearly:'https://buy.stripe.com/aFa4gy4UO6IHftW1HZdwc0a'
   };
   const url=links[selectedPlan];
-  gev('subscribe_clicked',{plan:selectedPlan});
+  gev('subscribe_clicked',{plan:selectedPlan});pev('checkout');
   const isStandalone=window.matchMedia('(display-mode:standalone)').matches||window.navigator.standalone;
   if(isStandalone){
     // PWA standalone mode: open in external browser
@@ -1876,7 +1876,7 @@ function savePwEmail(){
   d.email=email;
   lsj('data',d);
   g('pw-email-block').innerHTML='<div style="text-align:center;font-size:13px;color:var(--green);padding:12px;">✓ We\'ll send your mini-report to '+email+'</div>';
-  gev('email_captured');
+  gev('email_captured');pev('signup');
 
   // Determine NS state from latest checkin
   const lastState=d.days?d.days[Object.keys(d.days).pop()]||null:null;
@@ -1910,7 +1910,16 @@ function renderReferralBlock(){
   const el=g('r-referral');
   const refCode=getRefCode();
   const refUrl=window.location.origin+window.location.pathname+'?ref='+refCode;
-  el.innerHTML='<div class="referral-block"><div class="ref-title">Know someone who needs this?</div><div class="ref-desc">Share your link. They get 5 extra days of access.<br>When they subscribe, you get bonus days:<br>Basic plan → 5 days · Full plan → 7 days · Annual → 14 days</div><div class="ref-link-box"><input type="text" value="'+refUrl+'" readonly id="ref-url"><button onclick="copyRef()">Copy</button></div></div>';
+  const bonusDays=d.bonusDays||0;
+  const refCount=d.refCount||0;
+  let statsHtml='';
+  if(refCount>0||bonusDays>0){
+    statsHtml='<div style="margin-top:12px;padding:12px;background:var(--surface);border-radius:10px;font-size:12px;color:var(--text2);line-height:1.6;">';
+    if(refCount>0)statsHtml+='<div>Friends joined: <span style="color:var(--accent);font-weight:600">'+refCount+'</span></div>';
+    if(bonusDays>0)statsHtml+='<div>Bonus days earned: <span style="color:var(--green);font-weight:600">+'+bonusDays+'</span></div>';
+    statsHtml+='</div>';
+  }
+  el.innerHTML='<div class="referral-block"><div class="ref-title">Know someone who needs this?</div><div class="ref-desc">Share your link. When they subscribe, you get free bonus days:<br>Basic plan → 3 days · Full plan → 5 days · Annual → 10 days</div><div class="ref-link-box"><input type="text" value="'+refUrl+'" readonly id="ref-url"><button onclick="copyRef()">Copy</button></div>'+statsHtml+'</div>';
 }
 
 function getRefCode(){
@@ -1935,6 +1944,19 @@ function checkRef(){
     // Clean URL
     window.history.replaceState({},'',window.location.pathname);
   }
+}
+
+// Sync referral bonus from Supabase (called after auth)
+async function syncReferralBonus(userId){
+  try{
+    const{data:profile}=await _sb.from('profiles').select('bonus_days,referral_count').eq('id',userId).single();
+    if(profile){
+      const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
+      if(profile.bonus_days)d.bonusDays=profile.bonus_days;
+      if(profile.referral_count)d.refCount=profile.referral_count;
+      lsj('data',d);
+    }
+  }catch(e){console.log('Ref sync:',e)}
 }
 
 // ============================================================
@@ -1995,6 +2017,8 @@ _sb.auth.onAuthStateChange(async(event,session)=>{
       if(myProfile&&myProfile.referral_code){
         ls('refcode',myProfile.referral_code);
       }
+      // Sync bonus days from referrals
+      await syncReferralBonus(session.user.id);
     }catch(e){console.log('Sync:',e)}
   }
   if(event==='SIGNED_OUT'){_sbUser=null;}
