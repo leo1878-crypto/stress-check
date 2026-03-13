@@ -1,4 +1,4 @@
-const CACHE='ns-en-v2';
+const CACHE='ns-en-v3';
 const ASSETS=['/','index.html','manifest.json','icon-192.png','icon-512.png'];
 
 self.addEventListener('install',e=>{
@@ -12,6 +12,7 @@ self.addEventListener('activate',e=>{
 });
 
 self.addEventListener('fetch',e=>{
+  if(e.request.method!=='GET'){return;}
   e.respondWith(
     fetch(e.request).then(res=>{
       const clone=res.clone();
