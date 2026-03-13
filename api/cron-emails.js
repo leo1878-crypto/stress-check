@@ -141,6 +141,8 @@ export default async function handler(req, res) {
           );
           sent++;
         } else {
+          const errBody = await sendRes.text();
+          console.log('Resend error:', sendRes.status, errBody);
           errors++;
         }
       } catch (e) {
