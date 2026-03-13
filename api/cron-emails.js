@@ -1,3 +1,4 @@
+
 // ============================================================ 
 // EMAIL TEMPLATES
 // ============================================================
@@ -115,7 +116,7 @@ export default async function handler(req, res) {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            from: "Dr. Tatiana D'Angeli <hello@send.drdangeli.com>",
+            from: "Dr. Tatiana D'Angeli <hello@drdangeli.com>",
             to: [lead.email],
             subject: template.subject,
             html: html
