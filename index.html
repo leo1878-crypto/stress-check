@@ -60,6 +60,34 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 .tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
 .tab span{font-size:10px;letter-spacing:0.5px;font-weight:500;}
 
+/* ===== AUTH SCREEN ===== */
+.auth-container{max-width:360px;margin:0 auto;padding:60px 0 40px;text-align:center;}
+.auth-icon{font-size:40px;margin-bottom:20px;}
+.auth-title{font-family:var(--serif);font-size:24px;font-weight:400;color:var(--text);margin-bottom:8px;}
+.auth-subtitle{font-size:14px;color:var(--text);line-height:1.6;margin-bottom:24px;}
+.auth-state-preview{display:inline-block;padding:8px 16px;background:var(--accent-dim);border:1px solid rgba(201,168,124,0.2);border-radius:20px;font-size:13px;color:var(--accent);margin-bottom:24px;}
+.auth-input{width:100%;padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text);font-size:16px;font-family:var(--sans);outline:none;box-sizing:border-box;transition:border-color .2s;-webkit-appearance:none;}
+.auth-input:focus{border-color:var(--accent);}
+.auth-input.error{border-color:var(--red);}
+.auth-btn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--accent);color:var(--bg);font-size:15px;font-weight:600;cursor:pointer;font-family:var(--sans);margin-top:12px;transition:opacity .2s;}
+.auth-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.auth-btn .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(12,11,15,0.3);border-top-color:var(--bg);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:8px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.auth-benefits{margin-top:24px;text-align:left;}
+.auth-benefit{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:13px;color:var(--text);}
+.auth-benefit .check{color:var(--green);font-size:16px;flex-shrink:0;}
+.auth-status{font-size:13px;margin-top:12px;min-height:20px;}
+.auth-otp-wrap{display:flex;justify-content:center;gap:8px;margin:20px 0;}
+.auth-otp-digit{width:44px;height:52px;text-align:center;font-size:22px;font-weight:600;font-family:var(--sans);border-radius:10px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text);outline:none;-webkit-appearance:none;}
+.auth-otp-digit:focus{border-color:var(--accent);}
+.auth-otp-digit.error{border-color:var(--red);}
+.auth-email-shown{font-size:14px;color:var(--accent);font-weight:500;margin-bottom:8px;}
+.auth-resend{font-size:13px;color:var(--text3);margin-top:16px;}
+.auth-resend a{color:var(--accent);text-decoration:none;cursor:pointer;}
+.auth-resend a.disabled{color:var(--text3);pointer-events:none;}
+.auth-help{font-size:12px;color:var(--text3);margin-top:12px;}
+.auth-help a{color:var(--text3);text-decoration:underline;}
+
 /* ===== INTRO ===== */
 .intro-text{font-family:var(--serif);font-size:20px;font-weight:400;line-height:1.6;color:var(--text);margin-bottom:24px;font-style:italic;}
 .intro-details{color:var(--text2);font-size:13px;margin-bottom:32px;line-height:1.7;}
@@ -562,6 +590,46 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
     </div>
   </div>
 
+  <!-- ====== AUTH SCREEN ====== -->
+  <div class="screen" id="scr-auth">
+    <div class="auth-container">
+      <div id="auth-step-email">
+        <div class="auth-icon">📊</div>
+        <div class="auth-title">Your results are ready</div>
+        <div class="auth-state-preview" id="auth-state-preview"></div>
+        <div class="auth-subtitle">Create a free account to save your results and track your nervous system over time</div>
+        <input type="email" id="auth-email" class="auth-input" placeholder="your@email.com" autocomplete="email" autocapitalize="off">
+        <button class="auth-btn" id="auth-send-btn" onclick="authSendOtp()">Send me the code</button>
+        <div class="auth-status" id="auth-email-status"></div>
+        <div class="auth-benefits">
+          <div class="auth-benefit"><span class="check">✓</span> Free forever · No credit card</div>
+          <div class="auth-benefit"><span class="check">✓</span> Access from any device</div>
+          <div class="auth-benefit"><span class="check">✓</span> Track your patterns over time</div>
+        </div>
+      </div>
+      <div id="auth-step-otp" style="display:none">
+        <div class="auth-icon">✉️</div>
+        <div class="auth-title">Check your email</div>
+        <div class="auth-email-shown" id="auth-otp-email"></div>
+        <div class="auth-subtitle">Enter the 6-digit code we sent you</div>
+        <div class="auth-otp-wrap" id="auth-otp-wrap">
+          <input type="tel" maxlength="1" class="auth-otp-digit" data-idx="0" inputmode="numeric" autocomplete="one-time-code">
+          <input type="tel" maxlength="1" class="auth-otp-digit" data-idx="1" inputmode="numeric">
+          <input type="tel" maxlength="1" class="auth-otp-digit" data-idx="2" inputmode="numeric">
+          <input type="tel" maxlength="1" class="auth-otp-digit" data-idx="3" inputmode="numeric">
+          <input type="tel" maxlength="1" class="auth-otp-digit" data-idx="4" inputmode="numeric">
+          <input type="tel" maxlength="1" class="auth-otp-digit" data-idx="5" inputmode="numeric">
+        </div>
+        <div class="auth-status" id="auth-otp-status"></div>
+        <div class="auth-resend" id="auth-resend">
+          <a class="disabled" id="auth-resend-link" onclick="authResendOtp()">Resend code</a>
+          <span id="auth-resend-timer"> (60s)</span>
+        </div>
+        <div class="auth-help">Need help? <a href="mailto:support@drdangeli.com">support@drdangeli.com</a></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ====== TAB: PRACTICE ====== -->
   <div class="screen" id="scr-practice">
     <div id="practice-content">
@@ -572,6 +640,53 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
       </div>
     </div>
   </div>
+  </div>
+
+  <!-- ====== TAB: ACCOUNT ====== -->
+  <div class="screen" id="scr-account">
+    <div style="padding-top:40px">
+      <div style="text-align:center;margin-bottom:28px;">
+        <div style="width:56px;height:56px;border-radius:50%;background:var(--accent-dim);border:1.5px solid rgba(201,168,124,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:24px;">👤</div>
+        <div id="acc-email" style="font-size:15px;color:var(--text);font-weight:500;"></div>
+        <div id="acc-since" style="font-size:12px;color:var(--text3);margin-top:4px;"></div>
+      </div>
+
+      <!-- Subscription Card -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--accent);margin-bottom:12px;">Your Plan</div>
+        <div id="acc-plan-content"></div>
+      </div>
+
+      <!-- Progress Card -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--accent);margin-bottom:12px;">Your Progress</div>
+        <div id="acc-progress-content"></div>
+      </div>
+
+      <!-- Referral Card -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--accent);margin-bottom:12px;">Invite Friends</div>
+        <div id="acc-referral-content"></div>
+      </div>
+
+      <!-- Support Card -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--accent);margin-bottom:12px;">Need Help?</div>
+        <div style="text-align:center;">
+          <a href="https://t.me/drdangeli_ai_bot" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:var(--accent-dim);border:1px solid rgba(201,168,124,0.2);border-radius:12px;color:var(--accent);text-decoration:none;font-size:14px;font-weight:500;font-family:var(--sans);">💬 Ask Assistant</a>
+          <div style="margin-top:12px;font-size:13px;color:var(--text3);">Or email <a href="mailto:support@drdangeli.com" style="color:var(--text2);text-decoration:none;">support@drdangeli.com</a></div>
+        </div>
+      </div>
+
+      <!-- Log out -->
+      <div style="text-align:center;margin-top:8px;margin-bottom:24px;">
+        <button onclick="authLogout()" style="padding:12px 32px;background:transparent;border:1px solid var(--border);border-radius:12px;color:var(--text3);font-size:13px;cursor:pointer;font-family:var(--sans);">Log out</button>
+        <div style="font-size:11px;color:var(--text3);margin-top:8px;">Your data is safe. Sign in anytime.</div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
 <!-- ====== PAYWALL ====== -->
@@ -624,7 +739,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
     </div>
     <button class="btn btn-primary" style="margin-top:16px" onclick="handlePay()">Subscribe</button>
     <button class="btn btn-ghost" onclick="closePaywall()">Not now</button>
-    <div style="text-align:center;font-size:11px;color:var(--text3);margin-top:12px;line-height:1.5;">Cancel anytime · No auto-renewal</div>
+    <div style="text-align:center;font-size:11px;color:var(--text3);margin-top:12px;line-height:1.5;">Cancel anytime · Secure payment via Stripe</div>
     <div style="text-align:center;margin-top:8px"><a href="/cdn-cgi/l/email-protection#1b686e6b6b74696f5b7f697f7a757c7e777235787476" style="color:var(--text3);font-size:11px;text-decoration:none;">Questions? <span class="__cf_email__" data-cfemail="166563666679646256726472777871737a7f3875797b">[email&#160;protected]</span></a></div>
     <div class="pw-email" id="pw-email-block">
       <div class="pw-em-title">Not ready yet? Leave your email and we'll send you a mini-report based on your data</div>
@@ -667,6 +782,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
   <div class="tab" id="tab-practice" onclick="goTab('practice')">
     <svg viewBox="0 0 24 24"><path d="M12 3L2 12h3v8h5v-5h4v5h5v-8h3L12 3z"/></svg>
     <span>Practice</span>
+  </div>
+  <div class="tab" id="tab-account" onclick="goTab('account')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+    <span>Account</span>
   </div>
 </div>
 
@@ -1366,12 +1485,33 @@ function lsj(k,v){if(v===undefined){const r=ls(k);return r?JSON.parse(r):null}ls
 // INIT
 // ============================================================
 function init(){
-  // Handle Stripe return - show activation screen
+  // Handle Stripe return
   const urlParams=new URLSearchParams(window.location.search);
   if(urlParams.get('status')==='success'&&urlParams.get('sub')){
     gev('payment_success',{plan:urlParams.get('sub')});pev('checkout',{value:urlParams.get('sub')==='annual'?99:urlParams.get('sub')==='full'?14.90:9.90,currency:'USD'});
     window.history.replaceState({},'',window.location.pathname);
     showActivationScreen(urlParams.get('sub'));
+    return;
+  }
+  // Save UTM params
+  if(urlParams.get('utm_source')){
+    ls('utm_source',urlParams.get('utm_source'));
+    ls('utm_medium',urlParams.get('utm_medium')||'');
+    ls('utm_campaign',urlParams.get('utm_campaign')||'');
+  }
+  // Check for OTP-pending state (iOS reload recovery)
+  const pendingState=ls('otp_pending_state');
+  const pendingEmail=ls('otp_pending_email');
+  if(pendingState&&pendingEmail&&!_sbUser){
+    _authEmail=pendingEmail;
+    _authPendingState=pendingState;
+    showScreen('scr-auth');
+    document.querySelector('.tab-bar').style.display='none';
+    g('auth-step-email').style.display='none';
+    g('auth-step-otp').style.display='block';
+    g('auth-otp-email').textContent=pendingEmail;
+    authStartResendTimer();
+    setTimeout(authSetupOtpInputs,100);
     return;
   }
   const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
@@ -1485,6 +1625,10 @@ function goTab(t){
     g('tab-practice').classList.add('active');
     showScreen('scr-practice');
     renderPractice();
+  } else if(t==='account'){
+    g('tab-account').classList.add('active');
+    showScreen('scr-account');
+    renderAccount();
   }
 }
 
@@ -1687,8 +1831,34 @@ function finishCheckin(){
   updateStreak(data);
   lsj('data',data);
 
-  // PWA popup (show once, on first check-in)
-  if(Object.keys(data.days).length===1&&!data.pwaClosed&&!isPwa()){
+  // Check if user is authenticated
+  if (!_sbUser) {
+    // Not logged in — show auth screen before results
+    authShowEmailStep(state);
+  } else {
+    // Logged in — save to Supabase then show result
+    authSaveCheckinAndShowResult(state, data);
+  }
+}
+
+async function authSaveCheckinAndShowResult(state, data) {
+  try {
+    const today = getTodayStr();
+    await _sb.from('checkins').upsert({
+      user_id: _sbUser.id,
+      created_at: today + 'T12:00:00Z',
+      day_number: Object.keys(data.days).length,
+      ns_state: state,
+      body_zones: []
+    }, { onConflict: 'user_id,created_at', ignoreDuplicates: false });
+  } catch(e) { console.log('Checkin save:', e); }
+
+  const numCheckins = Object.keys(data.days).length;
+  if (!data.sub && numCheckins <= 3) {
+    gev('free_checkin_' + numCheckins);
+  }
+
+  if(numCheckins === 1 && !data.pwaClosed && !isPwa()){
     showPwaPopup(state);
   } else {
     showResult(state);
@@ -1947,13 +2117,15 @@ function handlePay(){
     full:'https://buy.stripe.com/6oUcN40Ey6IH3Le2M3dwc09',
     yearly:'https://buy.stripe.com/aFa4gy4UO6IHftW1HZdwc0a'
   };
-  const url=links[selectedPlan];
+  let url=links[selectedPlan];
+  // Add prefilled email so Stripe uses the same email as account
+  const d=lsj('data')||{};
+  if(d.email){
+    url+=(url.includes('?')?'&':'?')+'prefilled_email='+encodeURIComponent(d.email);
+  }
   gev('subscribe_clicked',{plan:selectedPlan});pev('checkout');
   const isStandalone=window.matchMedia('(display-mode:standalone)').matches||window.navigator.standalone;
   if(isStandalone){
-    // PWA standalone mode: open in external browser
-    // iOS Safari standalone needs location.href (target=_blank is ignored)
-    // Android Chrome standalone needs a click on <a target=_blank>
     const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
     if(isIOS){
       window.location.href=url;
@@ -1963,7 +2135,6 @@ function handlePay(){
       document.body.appendChild(a);a.click();document.body.removeChild(a);
     }
   }else{
-    // Regular browser: just redirect
     window.location.href=url;
   }
 }
@@ -2059,6 +2230,380 @@ async function syncReferralBonus(userId){
       lsj('data',d);
     }
   }catch(e){console.log('Ref sync:',e)}
+}
+
+// ============================================================
+// ACCOUNT TAB
+// ============================================================
+function renderAccount(){
+  var d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
+  
+  // Header
+  g('acc-email').textContent=d.email||'Not signed in';
+  g('acc-since').textContent=d.email?'Member since March 2026':'';
+
+  // Subscription
+  var planEl=g('acc-plan-content');
+  var numCheckins=Object.keys(d.days||{}).length;
+  var bonusDays=d.bonusDays||0;
+  
+  if(d.sub){
+    var planName=d.sub==='yearly'?'Annual ($99/year)':d.sub==='full'?'Full ($14.90/mo)':'Basic ($9.90/mo)';
+    planEl.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div style="font-size:15px;color:var(--text);font-weight:500;">'+planName+'</div><div style="font-size:12px;color:var(--green);font-weight:500;background:var(--green-dim);padding:4px 10px;border-radius:8px;">Active</div></div>'+(bonusDays>0?'<div style="font-size:13px;color:var(--accent);margin-bottom:8px;">+'+bonusDays+' bonus days from referrals</div>':'')+'<button onclick="openPortal()" style="width:100%;padding:12px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--text2);font-size:13px;cursor:pointer;font-family:var(--sans);margin-top:8px;">Manage Subscription</button><div style="font-size:11px;color:var(--text3);text-align:center;margin-top:6px;">Change plan · Update card · Cancel</div>';
+  } else if(numCheckins<FREE_DAYS){
+    planEl.innerHTML='<div style="font-size:15px;color:var(--text);margin-bottom:6px;">Free — '+numCheckins+' of 3 days used</div><div style="font-size:13px;color:var(--text2);margin-bottom:12px;">Upgrade to unlock full access</div><button class="btn btn-primary" style="width:100%" onclick="showPaywall()">See plans</button>';
+  } else if(bonusDays>0){
+    planEl.innerHTML='<div style="font-size:15px;color:var(--text);margin-bottom:6px;">Referral bonus — '+bonusDays+' days remaining</div><div style="font-size:13px;color:var(--text2);margin-bottom:12px;">Subscribe before it ends</div><button class="btn btn-primary" style="width:100%" onclick="showPaywall()">See plans</button>';
+  } else {
+    planEl.innerHTML='<div style="font-size:15px;color:var(--text);margin-bottom:6px;">Free trial ended</div><div style="font-size:13px;color:var(--text2);margin-bottom:12px;">Subscribe to continue tracking</div><button class="btn btn-primary" style="width:100%" onclick="showPaywall()">See plans</button>';
+  }
+
+  // Progress with interactive calendar
+  var progEl=g('acc-progress-content');
+  var streak=d.streak||0;
+  var exCount=d.exercisesCompleted||0;
+  var stateColors={sympathetic:'var(--red)',dorsal:'var(--blue)',freeze:'var(--amber)',ventral:'var(--green)'};
+  var stateNames={sympathetic:'Sympathetic activation',dorsal:'Dorsal shutdown',freeze:'Freeze response',ventral:'Ventral regulation'};
+  
+  // Build calendar
+  var now=new Date();
+  var year=now.getFullYear(),month=now.getMonth();
+  var monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var firstDay=new Date(year,month,1).getDay();
+  var daysInMonth=new Date(year,month+1,0).getDate();
+  var startOffset=(firstDay===0?6:firstDay-1);
+  
+  var calHtml='<div style="font-size:13px;color:var(--text);margin-bottom:10px;font-weight:500;">'+monthNames[month]+' '+year+'</div>';
+  calHtml+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:12px;text-align:center;">';
+  calHtml+='<div style="font-size:10px;color:var(--text3);padding:4px;">M</div><div style="font-size:10px;color:var(--text3);padding:4px;">T</div><div style="font-size:10px;color:var(--text3);padding:4px;">W</div><div style="font-size:10px;color:var(--text3);padding:4px;">T</div><div style="font-size:10px;color:var(--text3);padding:4px;">F</div><div style="font-size:10px;color:var(--text3);padding:4px;">S</div><div style="font-size:10px;color:var(--text3);padding:4px;">S</div>';
+  
+  for(var i=0;i<startOffset;i++) calHtml+='<div></div>';
+  for(var day=1;day<=daysInMonth;day++){
+    var dateStr=year+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+    var state=d.days[dateStr];
+    var isToday=dateStr===getTodayStr();
+    if(state){
+      var col=stateColors[state]||'var(--text3)';
+      calHtml+='<div onclick="showDayDetail(\''+dateStr+'\')" style="aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;background:'+col+';color:var(--bg);font-weight:600;cursor:pointer;'+(isToday?'box-shadow:0 0 0 2px var(--accent);':'')+'">'+day+'</div>';
+    } else {
+      calHtml+='<div style="aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text3);border:1px solid var(--border);'+(isToday?'box-shadow:0 0 0 2px var(--accent);':'')+'">'+day+'</div>';
+    }
+  }
+  calHtml+='</div>';
+  calHtml+='<div style="display:flex;flex-wrap:wrap;gap:8px;font-size:10px;color:var(--text3);">';
+  calHtml+='<div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:2px;background:var(--red);"></div>activated</div>';
+  calHtml+='<div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:2px;background:var(--blue);"></div>shutdown</div>';
+  calHtml+='<div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:2px;background:var(--amber);"></div>freeze</div>';
+  calHtml+='<div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:2px;background:var(--green);"></div>regulated</div>';
+  calHtml+='</div>';
+  calHtml+='<div id="day-detail" style="margin-top:12px;"></div>';
+
+  progEl.innerHTML=(streak>1?'<div style="font-size:15px;color:var(--text);margin-bottom:4px;">🔥 '+streak+'-day streak</div>':'')+
+    '<div style="display:flex;gap:16px;margin-bottom:12px;font-size:13px;color:var(--text2);">'+
+    '<div>Check-ins: <span style="color:var(--text);font-weight:500;">'+numCheckins+'</span></div>'+
+    (exCount>0?'<div>Exercises: <span style="color:var(--text);font-weight:500;">'+exCount+'</span></div>':'')+
+    '</div>'+calHtml;
+
+  // Referral
+  var refEl=g('acc-referral-content');
+  var refCode=ls('refcode')||'';
+  var refCount=d.refCount||0;
+  if(refCode){
+    refEl.innerHTML='<div style="font-size:13px;color:var(--text2);margin-bottom:10px;">Your link:</div><div style="display:flex;gap:8px;margin-bottom:16px;"><input readonly value="https://drdangeli.com/?ref='+refCode+'" id="copy-ref-input" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px;font-family:var(--sans);outline:none;"><button onclick="copyRef()" id="copy-ref-btn" style="padding:10px 14px;border-radius:8px;border:none;background:var(--accent);color:var(--bg);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);white-space:nowrap;">Copy</button></div><div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">When a friend subscribes, you earn bonus days:<br>Basic → +3 · Full → +5 · Annual → +10<br>Max 30 days per cycle</div>'+(refCount>0?'<div style="font-size:13px;color:var(--text);">Friends subscribed: '+refCount+'</div><div style="font-size:13px;color:var(--accent);">Bonus days earned: '+(bonusDays||0)+'</div>':'<div style="font-size:13px;color:var(--text3);">No referrals yet</div>');
+  } else {
+    refEl.innerHTML='<div style="font-size:13px;color:var(--text3);">Sign in to get your referral link</div>';
+  }
+}
+
+function showDayDetail(dateStr){
+  var d=lsj('data')||{};
+  var state=d.days&&d.days[dateStr];
+  var el=g('day-detail');
+  if(!el)return;
+  if(!state){el.innerHTML='';return;}
+  var stateNames={sympathetic:'Sympathetic activation',dorsal:'Dorsal shutdown',freeze:'Freeze response',ventral:'Ventral regulation'};
+  var stateIcons={sympathetic:'⚡',dorsal:'🌊',freeze:'🧊',ventral:'🌿'};
+  var parts=dateStr.split('-');
+  var monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var dateLabel=monthNames[parseInt(parts[1])-1]+' '+parseInt(parts[2]);
+  el.innerHTML='<div style="background:var(--bg3);border-radius:10px;padding:12px 14px;"><div style="font-size:12px;color:var(--text3);margin-bottom:4px;">'+dateLabel+'</div><div style="font-size:14px;color:var(--text);">'+(stateIcons[state]||'')+' '+stateNames[state]+'</div></div>';
+}
+
+function copyRef(){
+  var refCode=ls('refcode')||'';
+  var urlInput=g('ref-url')||g('copy-ref-btn');
+  var url=refCode?'https://drdangeli.com/?ref='+refCode:'';
+  if(!url){
+    if(g('ref-url'))url=g('ref-url').value;
+    else return;
+  }
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(url).then(function(){
+      var btn=g('copy-ref-btn')||(g('ref-url')?g('ref-url').parentElement.querySelector('button'):null);
+      if(btn){btn.textContent='Copied!';setTimeout(function(){btn.textContent='Copy';},2000);}
+    });
+  } else {
+    var ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    var btn=g('copy-ref-btn')||(g('ref-url')?g('ref-url').parentElement.querySelector('button'):null);
+    if(btn){btn.textContent='Copied!';setTimeout(function(){btn.textContent='Copy';},2000);}
+  }
+  gev('referral_link_copied');
+}
+
+async function openPortal(){
+  var d=lsj('data')||{};
+  if(!d.email){alert('Please sign in first.');return;}
+  gev('portal_opened');
+  try{
+    var res=await fetch('/api/create-portal-session',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:d.email})
+    });
+    var data=await res.json();
+    if(data.url){
+      var isStandalone=window.matchMedia('(display-mode:standalone)').matches||window.navigator.standalone;
+      if(isStandalone){
+        var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+        if(isIOS){window.location.href=data.url;}
+        else{var a=document.createElement('a');a.href=data.url;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();document.body.removeChild(a);}
+      } else {
+        window.location.href=data.url;
+      }
+    } else {
+      alert(data.error||'Could not open subscription management. Email support@drdangeli.com');
+    }
+  }catch(e){
+    alert('Connection error. Please try again or email support@drdangeli.com');
+  }
+}
+
+// ============================================================
+// AUTH: OTP EMAIL LOGIN
+// ============================================================
+let _authPendingState = null;
+let _authEmail = '';
+let _authOtpAttempts = 0;
+const _authMaxAttempts = 5;
+let _authResendTimer = null;
+
+function authShowEmailStep(stateKey) {
+  _authPendingState = stateKey;
+  showScreen('scr-auth');
+  document.querySelector('.tab-bar').style.display = 'none';
+  var st = states[stateKey];
+  if (st) {
+    g('auth-state-preview').textContent = st.icon + ' ' + st.name;
+    g('auth-state-preview').style.display = 'inline-block';
+  }
+  var d = lsj('data') || {};
+  if (d.email) { g('auth-email').value = d.email; }
+  g('auth-step-email').style.display = 'block';
+  g('auth-step-otp').style.display = 'none';
+  g('auth-email-status').textContent = '';
+  g('auth-email').classList.remove('error');
+  ls('otp_pending_state', stateKey);
+  gev('registration_screen_shown', { ns_state: stateKey });
+}
+
+async function authSendOtp() {
+  var email = g('auth-email').value.trim().toLowerCase();
+  if (!email || !email.includes('@') || !email.includes('.')) {
+    g('auth-email').classList.add('error');
+    g('auth-email-status').textContent = 'Please enter a valid email';
+    g('auth-email-status').style.color = 'var(--red)';
+    return;
+  }
+  _authEmail = email;
+  g('auth-email').classList.remove('error');
+  var btn = g('auth-send-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Sending...';
+  g('auth-email-status').textContent = '';
+  try {
+    var result = await _sb.auth.signInWithOtp({ email: email, options: { shouldCreateUser: true } });
+    if (result.error) {
+      if (result.error.message && result.error.message.includes('rate')) {
+        g('auth-email-status').textContent = 'Please wait 60 seconds before requesting another code.';
+        g('auth-email-status').style.color = 'var(--amber)';
+      } else {
+        g('auth-email-status').textContent = result.error.message || 'Something went wrong. Try again.';
+        g('auth-email-status').style.color = 'var(--red)';
+      }
+      btn.disabled = false;
+      btn.textContent = 'Send me the code';
+      gev('otp_send_failed', { error: (result.error.message||'') });
+      return;
+    }
+    gev('otp_sent', { email: email });
+    ls('otp_pending_email', email);
+    authShowOtpStep();
+  } catch (e) {
+    g('auth-email-status').textContent = 'Connection error. Try again.';
+    g('auth-email-status').style.color = 'var(--red)';
+    btn.disabled = false;
+    btn.textContent = 'Send me the code';
+  }
+}
+
+function authShowOtpStep() {
+  g('auth-step-email').style.display = 'none';
+  g('auth-step-otp').style.display = 'block';
+  g('auth-otp-email').textContent = _authEmail;
+  g('auth-otp-status').textContent = '';
+  _authOtpAttempts = 0;
+  document.querySelectorAll('.auth-otp-digit').forEach(function(inp) { inp.value = ''; inp.classList.remove('error'); });
+  var first = document.querySelector('.auth-otp-digit[data-idx="0"]');
+  if (first) first.focus();
+  authStartResendTimer();
+  authSetupOtpInputs();
+  var btn = g('auth-send-btn');
+  if (btn) { btn.disabled = false; btn.textContent = 'Send me the code'; }
+}
+
+function authSetupOtpInputs() {
+  var digits = document.querySelectorAll('.auth-otp-digit');
+  digits.forEach(function(inp, idx) {
+    inp.oninput = function() {
+      var val = this.value.replace(/\D/g, '');
+      this.value = val.slice(0, 1);
+      if (val && idx < 5) digits[idx + 1].focus();
+      var code = Array.from(digits).map(function(d) { return d.value; }).join('');
+      if (code.length === 6) authVerifyOtp(code);
+    };
+    inp.onpaste = function(e) {
+      e.preventDefault();
+      var paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+      if (paste.length >= 6) {
+        for (var i = 0; i < 6; i++) digits[i].value = paste[i] || '';
+        digits[5].focus();
+        authVerifyOtp(paste.slice(0, 6));
+      }
+    };
+    inp.onkeydown = function(e) {
+      if (e.key === 'Backspace' && !this.value && idx > 0) { digits[idx - 1].focus(); digits[idx - 1].value = ''; }
+    };
+  });
+}
+
+async function authVerifyOtp(code) {
+  if (_authOtpAttempts >= _authMaxAttempts) {
+    g('auth-otp-status').textContent = 'Too many attempts. Request a new code.';
+    g('auth-otp-status').style.color = 'var(--red)';
+    return;
+  }
+  _authOtpAttempts++;
+  g('auth-otp-status').textContent = 'Verifying...';
+  g('auth-otp-status').style.color = 'var(--text2)';
+  try {
+    var result = await _sb.auth.verifyOtp({ email: _authEmail, token: code, type: 'email' });
+    if (result.error) {
+      gev('otp_failed', { attempt: _authOtpAttempts });
+      document.querySelectorAll('.auth-otp-digit').forEach(function(d) { d.classList.add('error'); });
+      if (_authOtpAttempts >= _authMaxAttempts) {
+        g('auth-otp-status').textContent = 'Too many attempts. Request a new code.';
+      } else {
+        g('auth-otp-status').textContent = 'Incorrect code. Try again. (' + _authOtpAttempts + '/' + _authMaxAttempts + ')';
+      }
+      g('auth-otp-status').style.color = 'var(--red)';
+      setTimeout(function() {
+        document.querySelectorAll('.auth-otp-digit').forEach(function(d) { d.value = ''; d.classList.remove('error'); });
+        var first = document.querySelector('.auth-otp-digit[data-idx="0"]');
+        if (first) first.focus();
+      }, 1000);
+      return;
+    }
+    // SUCCESS
+    gev('otp_verified');
+    gev('account_created', { email: _authEmail });
+    ls('otp_pending_state', '');
+    ls('otp_pending_email', '');
+    var d = lsj('data') || { days: {}, streak: 0, lastDate: null, sub: null, ref: null, email: null, pwaClosed: false, notifClosed: false };
+    d.email = _authEmail;
+    lsj('data', d);
+    g('auth-otp-status').textContent = 'Account created ✓';
+    g('auth-otp-status').style.color = 'var(--green)';
+    // Write to email_leads for Series B
+    try {
+      var bmRaw = localStorage.getItem('stress_check_final_bodymap');
+      var zones = [];
+      if (bmRaw) { try { zones = JSON.parse(bmRaw).zones || []; } catch(e2) {} }
+      await _sb.from('email_leads').upsert({
+        email: _authEmail, source: 'account_created', ns_state: _authPendingState,
+        body_zones: zones, referrer_code: d.ref || null, series: 'B', email_number: 1
+      }, { onConflict: 'email' });
+    } catch(e3) { console.log('email_leads upsert on auth:', e3); }
+    // Send welcome email instantly
+    try {
+      fetch('/api/send-welcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: _authEmail, ns_state: _authPendingState })
+      });
+    } catch(e4) { console.log('Welcome email:', e4); }
+    // Show result after short delay (onAuthStateChange handles data sync)
+    setTimeout(function() {
+      document.querySelector('.tab-bar').style.display = 'flex';
+      if (Object.keys(d.days).length <= 1 && !d.pwaClosed && !isPwa()) {
+        showPwaPopup(_authPendingState);
+      } else {
+        showResult(_authPendingState);
+      }
+      _authPendingState = null;
+    }, 800);
+  } catch (e) {
+    g('auth-otp-status').textContent = 'Connection error. Try again.';
+    g('auth-otp-status').style.color = 'var(--red)';
+  }
+}
+
+function authStartResendTimer() {
+  var seconds = 60;
+  var link = g('auth-resend-link');
+  var timer = g('auth-resend-timer');
+  link.classList.add('disabled');
+  timer.textContent = ' (' + seconds + 's)';
+  if (_authResendTimer) clearInterval(_authResendTimer);
+  _authResendTimer = setInterval(function() {
+    seconds--;
+    if (seconds <= 0) { clearInterval(_authResendTimer); link.classList.remove('disabled'); timer.textContent = ''; }
+    else { timer.textContent = ' (' + seconds + 's)'; }
+  }, 1000);
+}
+
+async function authResendOtp() {
+  if (g('auth-resend-link').classList.contains('disabled')) return;
+  g('auth-otp-status').textContent = 'Sending new code...';
+  g('auth-otp-status').style.color = 'var(--text2)';
+  _authOtpAttempts = 0;
+  try {
+    var result = await _sb.auth.signInWithOtp({ email: _authEmail, options: { shouldCreateUser: true } });
+    if (result.error) {
+      g('auth-otp-status').textContent = result.error.message || 'Could not resend. Try again later.';
+      g('auth-otp-status').style.color = 'var(--red)';
+    } else {
+      g('auth-otp-status').textContent = 'New code sent ✓';
+      g('auth-otp-status').style.color = 'var(--green)';
+      authStartResendTimer();
+      gev('otp_resent');
+    }
+  } catch(e) {
+    g('auth-otp-status').textContent = 'Connection error.';
+    g('auth-otp-status').style.color = 'var(--red)';
+  }
+}
+
+function authLogout() {
+  _sb.auth.signOut();
+  _sbUser = null;
+  var d = lsj('data') || {};
+  d.email = null;
+  d.sub = null;
+  lsj('data', d);
+  ls('otp_pending_state', '');
+  ls('otp_pending_email', '');
+  gev('user_logged_out');
+  renderMain();
 }
 
 // ============================================================
