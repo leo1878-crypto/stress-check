@@ -24,13 +24,30 @@ export default async function handler(req) {
     'Prefer': 'return=representation'
   };
 
+  // ============================================================
+  // CHECKOUT COMPLETED (new subscription)
+  // ============================================================
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
     const email = session.customer_email || (session.customer_details && session.customer_details.email) || (session.metadata && session.metadata.email) || '';
-    const plan = (session.metadata && session.metadata.plan) || 'base';
     const customerId = session.customer || '';
     const subscriptionId = session.subscription || '';
     const now = new Date();
+
+    // FIX: Determine plan by amount instead of metadata (metadata.plan is often empty with Payment Links)
+    const amountTotal = session.amount_total || 0;
+    let plan = 'base';
+    if (amountTotal >= 9900) {
+      plan = 'yearly';
+    } else if (amountTotal >= 1490) {
+      plan = 'full';
+    } else if (amountTotal >= 990) {
+      plan = 'base';
+    }
+    // Also check metadata as fallback
+    if (session.metadata && session.metadata.plan) {
+      plan = session.metadata.plan;
+    }
 
     // Calculate expires_at based on plan
     const expiresAt = new Date(now);
@@ -149,11 +166,9 @@ export default async function handler(req) {
         }
       } else {
         // No profile found by email — need to create
-        // Wait for handle_new_user trigger if auth user was just created
         if (authUserId) {
           try {
             await new Promise(r => setTimeout(r, 1000));
-            // Try to update profile created by trigger
             const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${authUserId}`, {
               method: 'PATCH',
               headers,
@@ -168,7 +183,6 @@ export default async function handler(req) {
             const patchData = await patchRes.json();
 
             if (!patchData || patchData.length === 0) {
-              // Trigger didn't create it — insert manually
               await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
                 method: 'POST',
                 headers: { ...headers, 'Prefer': 'return=minimal' },
@@ -252,7 +266,59 @@ export default async function handler(req) {
     }
   }
 
-  // Handle subscription cancellation
+  // ============================================================
+  // SUBSCRIPTION UPDATED (cancel scheduled, plan change, reactivation)
+  // ============================================================
+  if (event.type === 'customer.subscription.updated') {
+    const subscription = event.data.object;
+    const customerId = subscription.customer || '';
+
+    if (customerId) {
+      try {
+        const updateData = {
+          subscription_status: subscription.status,
+          updated_at: new Date().toISOString()
+        };
+
+        // If cancel_at_period_end: user chose to cancel but still has access until end of period
+        if (subscription.cancel_at_period_end) {
+          updateData.cancels_at = new Date(subscription.current_period_end * 1000).toISOString();
+        } else {
+          updateData.cancels_at = null;
+        }
+
+        // Detect plan change by price
+        if (subscription.items && subscription.items.data && subscription.items.data[0] && subscription.items.data[0].price) {
+          const amount = subscription.items.data[0].price.unit_amount || 0;
+          if (amount >= 9900) updateData.plan = 'yearly';
+          else if (amount >= 1490) updateData.plan = 'full';
+          else if (amount >= 990) updateData.plan = 'base';
+        }
+
+        await fetch(`${SUPABASE_URL}/rest/v1/profiles?stripe_customer_id=eq.${encodeURIComponent(customerId)}`, {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify(updateData)
+        });
+
+        // Also update subscriptions table
+        await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?stripe_customer_id=eq.${encodeURIComponent(customerId)}&status=eq.active`, {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify({
+            status: subscription.status,
+            updated_at: new Date().toISOString()
+          })
+        });
+      } catch (e) {
+        console.log('subscription updated error:', e);
+      }
+    }
+  }
+
+  // ============================================================
+  // SUBSCRIPTION DELETED (cancelled or all retries failed)
+  // ============================================================
   if (event.type === 'customer.subscription.deleted') {
     const subscription = event.data.object;
     const customerId = subscription.customer || '';
@@ -264,6 +330,7 @@ export default async function handler(req) {
           headers,
           body: JSON.stringify({
             subscription_status: 'cancelled',
+            cancels_at: null,
             updated_at: new Date().toISOString()
           })
         });
@@ -276,6 +343,29 @@ export default async function handler(req) {
         });
       } catch (e) {
         console.log('subscription cancellation error:', e);
+      }
+    }
+  }
+
+  // ============================================================
+  // PAYMENT FAILED (card expired, insufficient funds)
+  // ============================================================
+  if (event.type === 'invoice.payment_failed') {
+    const invoice = event.data.object;
+    const customerId = invoice.customer || '';
+
+    if (customerId) {
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/profiles?stripe_customer_id=eq.${encodeURIComponent(customerId)}`, {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify({
+            subscription_status: 'past_due',
+            updated_at: new Date().toISOString()
+          })
+        });
+      } catch (e) {
+        console.log('payment failed error:', e);
       }
     }
   }
