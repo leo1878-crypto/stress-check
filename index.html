@@ -106,7 +106,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 
 /* ===== TODAY SCREEN ===== */
 .today-hero{text-align:center;padding:40px 0 24px;}
-.today-date{font-size:12px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px;}
+.today-date{font-size:12px;color:var(--text);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px;}
 .today-greeting{font-family:var(--serif);font-size:26px;font-weight:400;line-height:1.3;margin-bottom:8px;}
 .streak-badge{display:inline-flex;align-items:center;gap:6px;background:var(--accent-dim);border:1px solid rgba(201,168,124,0.2);border-radius:20px;padding:6px 14px;font-size:12px;color:var(--accent);margin-top:12px;}
 .streak-badge .num{font-weight:700;font-size:14px;}
@@ -114,14 +114,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 .status-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;text-align:center;}
 .status-card .state-icon{font-size:32px;margin-bottom:10px;}
 .status-card .state-name{font-family:var(--serif);font-size:20px;margin-bottom:6px;}
-.status-card .state-desc{font-size:13px;color:var(--text2);line-height:1.5;}
+.status-card .state-desc{font-size:14px;color:var(--text);line-height:1.5;}
 .status-card .state-done{color:var(--green);font-size:13px;margin-top:12px;}
 
 /* ===== TRACKER ===== */
 .tracker-section{margin:24px 0;}
 .tracker-title{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--accent);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
 .tracker-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:12px;}
-.tracker-day{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text3);border:1px solid var(--border);transition:all .2s;}
+.tracker-day{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--text);border:1px solid var(--border);transition:all .2s;}
 .tracker-day.empty{border-color:transparent;}
 .tracker-day.filled{border-color:transparent;color:var(--bg);font-weight:600;}
 .tracker-day.sympathetic{background:var(--red);}
@@ -346,6 +346,24 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 </head>
 <body>
 
+<script>
+// Body map zone data and click handler — must be before SVG elements
+var BM={zones:new Set(),sens:{},dur:{},ctx:[]};
+var ZN={forehead:'Forehead',eyes:'Eyes',jaw:'Jaw',nose:'Nose',ear_l:'Left Ear',ear_r:'Right Ear',throat:'Throat',shoulder:'Shoulders',chest:'Chest',solar:'Solar Plexus',stomach:'Stomach',pelvis:'Pelvis',hand:'Hands',knee:'Knees',feet:'Feet',head_back:'Back of Head',neck_back:'Neck',upperback:'Upper Back',midback:'Mid Back',lowerback:'Lower Back',sacrum:'Sacrum',glute:'Glutes',hamstring:'Hamstrings',calf:'Calves',shin:'Shins'};
+function bmBase(z){var p={shoulder:'shoulder',chest:'chest',stomach:'stomach',hand:'hand',knee:'knee',shin:'shin',feet:'feet',eyes:'eyes',upperback:'upperback',glute:'glute',hamstring:'hamstring',calf:'calf'};for(var k in p){if(z.indexOf(k)===0)return p[k]}return z}
+function bmZoneClick(el){
+  var b=bmBase(el.getAttribute('data-z'));
+  var all=document.querySelectorAll('[data-z]');
+  var matched=[];
+  for(var i=0;i<all.length;i++){if(bmBase(all[i].getAttribute('data-z'))===b)matched.push(all[i])}
+  if(BM.zones.has(b)){BM.zones.delete(b);matched.forEach(function(x){x.classList.remove('sel')})}
+  else{BM.zones.add(b);matched.forEach(function(x){x.classList.add('sel')});if(BM.zones.size===1&&typeof gev==='function')gev('bodymap_first_tap',{zone:b});}
+  bmUpd();
+}
+function bmUpd(){var n=BM.zones.size;var el=document.getElementById('bmSelC');var btn=document.getElementById('bmB1');if(!n){el.textContent='';btn.disabled=true}else{el.textContent='Selected: '+Array.from(BM.zones).map(function(z){return ZN[z]||z}).join(', ');btn.disabled=false}}
+function bmView(v,btn){document.querySelectorAll('.bm-vt').forEach(function(b){b.classList.remove('on')});btn.classList.add('on');document.querySelectorAll('.bm-v').forEach(function(x){x.classList.remove('on')});document.getElementById(v==='f'?'bmFront':'bmBack').classList.add('on');document.getElementById('bmHint').textContent=v==='f'?"Don't forget to check your back":"Don't forget to check the front"}
+</script>
+
 <div class="app">
   <!-- ====== INTRO: BODY MAP (first visit only) ====== -->
   <div class="screen active" id="scr-intro">
@@ -368,18 +386,19 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
         <svg viewBox="0 0 260 480" xmlns="http://www.w3.org/2000/svg">
         <path class="bo" d="M130,24C144,24 154,34 154,49C154,66 144,76 130,78C116,76 106,66 106,49C106,34 116,24 130,24Z"/>
         <path class="bo" d="M120,78 C118,80 116,84 114,88 L97,103C83,117 74,138 74,148L61,192 79,197 101,153 106,168 106,270L100,295 97,340 96,390 96,430 96,458C96,463 115,466 115,462L115,430 119,390 123,340 130,310L137,340 141,390 145,430 145,462C148,466 164,463 164,458L164,430 164,390 163,340 160,295L154,270 154,168 159,153 181,197 199,192L186,148C186,138 177,117 163,103L146,88C144,84 142,80 140,78C138,77 134,77 130,78C126,77 122,77 120,78Z"/>
-        <ellipse class="bz" data-z="forehead" cx="130" cy="37" rx="20" ry="12"/><text class="bzl" x="158" y="37">Forehead</text>
-        <ellipse class="bz" data-z="eyes_l" cx="120" cy="50" rx="10" ry="7"/><ellipse class="bz" data-z="eyes_r" cx="140" cy="50" rx="10" ry="7"/><text class="bzl" x="100" y="53" text-anchor="end">Eyes</text>
-        <ellipse class="bz" data-z="jaw" cx="130" cy="66" rx="18" ry="10"/><text class="bzl" x="156" y="69">Jaw</text>
-        <rect class="bz" data-z="throat" x="116" y="78" width="28" height="14" rx="5"/><text class="bzl" x="108" y="88" text-anchor="end">Throat</text>
-        <ellipse class="bz" data-z="shoulder_l" cx="96" cy="106" rx="20" ry="14"/><ellipse class="bz" data-z="shoulder_r" cx="164" cy="106" rx="20" ry="14"/><text class="bzl" x="190" y="100">Shoulders</text>
-        <ellipse class="bz" data-z="chest_l" cx="117" cy="134" rx="18" ry="18"/><ellipse class="bz" data-z="chest_r" cx="143" cy="134" rx="18" ry="18"/><text class="bzl" x="90" y="130" text-anchor="end">Chest</text>
-        <ellipse class="bz" data-z="solar" cx="130" cy="172" rx="20" ry="14"/><text class="bzl" x="158" y="176">Solar Plexus</text>
-        <ellipse class="bz" data-z="stomach_l" cx="117" cy="210" rx="18" ry="20"/><ellipse class="bz" data-z="stomach_r" cx="143" cy="210" rx="18" ry="20"/><text class="bzl" x="90" y="212" text-anchor="end">Stomach</text>
-        <ellipse class="bz" data-z="pelvis" cx="130" cy="255" rx="24" ry="16"/><text class="bzl" x="162" y="259">Pelvis</text>
-        <ellipse class="bz" data-z="hand_l" cx="72" cy="202" rx="12" ry="16"/><ellipse class="bz" data-z="hand_r" cx="188" cy="202" rx="12" ry="16"/><text class="bzl" x="206" y="194">Hands</text>
-        <ellipse class="bz" data-z="knee_l" cx="112" cy="370" rx="14" ry="18"/><ellipse class="bz" data-z="knee_r" cx="148" cy="370" rx="14" ry="18"/><text class="bzl" x="90" y="374" text-anchor="end">Knees</text>
-        <ellipse class="bz" data-z="feet_l" cx="108" cy="452" rx="14" ry="12"/><ellipse class="bz" data-z="feet_r" cx="152" cy="452" rx="14" ry="12"/><text class="bzl" x="173" y="456">Feet</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="forehead" cx="130" cy="37" rx="20" ry="12"/><text class="bzl" x="158" y="37">Forehead</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="eyes_l" cx="120" cy="50" rx="10" ry="7"/><ellipse class="bz" onclick="bmZoneClick(this)" data-z="eyes_r" cx="140" cy="50" rx="10" ry="7"/><text class="bzl" x="100" y="53" text-anchor="end">Eyes</text>
+        <polygon class="bz" onclick="bmZoneClick(this)" ontouchstart="" data-z="nose" points="130,50 123,64 137,64"/><text class="bzl" x="158" y="61">Nose</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="jaw" cx="130" cy="70" rx="16" ry="8"/><text class="bzl" x="156" y="69">Jaw</text>
+        <rect class="bz" onclick="bmZoneClick(this)" data-z="throat" x="116" y="78" width="28" height="14" rx="5"/><text class="bzl" x="108" y="88" text-anchor="end">Throat</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="shoulder_l" cx="96" cy="106" rx="20" ry="14"/><ellipse class="bz" onclick="bmZoneClick(this)" data-z="shoulder_r" cx="164" cy="106" rx="20" ry="14"/><text class="bzl" x="190" y="100">Shoulders</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="chest_l" cx="117" cy="134" rx="18" ry="18"/><ellipse class="bz" onclick="bmZoneClick(this)" data-z="chest_r" cx="143" cy="134" rx="18" ry="18"/><text class="bzl" x="90" y="130" text-anchor="end">Chest</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="solar" cx="130" cy="172" rx="20" ry="14"/><text class="bzl" x="158" y="176">Solar Plexus</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="stomach_l" cx="117" cy="210" rx="18" ry="20"/><ellipse class="bz" onclick="bmZoneClick(this)" data-z="stomach_r" cx="143" cy="210" rx="18" ry="20"/><text class="bzl" x="90" y="212" text-anchor="end">Stomach</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="pelvis" cx="130" cy="255" rx="24" ry="16"/><text class="bzl" x="162" y="259">Pelvis</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="hand_l" cx="72" cy="202" rx="12" ry="16"/><ellipse class="bz" onclick="bmZoneClick(this)" data-z="hand_r" cx="188" cy="202" rx="12" ry="16"/><text class="bzl" x="206" y="194">Hands</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="knee_l" cx="112" cy="370" rx="14" ry="18"/><ellipse class="bz" onclick="bmZoneClick(this)" data-z="knee_r" cx="148" cy="370" rx="14" ry="18"/><text class="bzl" x="90" y="374" text-anchor="end">Knees</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="feet_l" cx="108" cy="452" rx="14" ry="12"/><ellipse class="bz" onclick="bmZoneClick(this)" data-z="feet_r" cx="152" cy="452" rx="14" ry="12"/><text class="bzl" x="173" y="456">Feet</text>
         </svg>
         </div>
         <!-- BACK -->
@@ -388,15 +407,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
         <path class="bo" d="M130,24C144,24 154,34 154,49C154,66 144,76 130,78C116,76 106,66 106,49C106,34 116,24 130,24Z"/>
         <path class="bo" d="M120,78 C118,80 116,84 114,88 L97,103C83,117 74,138 74,148L61,192 79,197 101,153 106,168 106,270L100,295 97,340 96,390 96,430 96,458C96,463 115,466 115,462L115,430 119,390 123,340 130,310L137,340 141,390 145,430 145,462C148,466 164,463 164,458L164,430 164,390 163,340 160,295L154,270 154,168 159,153 181,197 199,192L186,148C186,138 177,117 163,103L146,88C144,84 142,80 140,78C138,77 134,77 130,78C126,77 122,77 120,78Z"/>
         <text style="font-size:9px;fill:rgba(255,255,255,.15);font-weight:600;font-family:system-ui" x="185" y="36">BACK</text>
-        <ellipse class="bz" data-z="head_back" cx="130" cy="42" rx="22" ry="16"/><text class="bzl" x="160" y="42">Back of Head</text>
-        <rect class="bz" data-z="neck_back" x="114" y="78" width="32" height="14" rx="5"/><text class="bzl" x="106" y="88" text-anchor="end">Neck</text>
-        <ellipse class="bz" data-z="upperback_l" cx="114" cy="118" rx="20" ry="20"/><ellipse class="bz" data-z="upperback_r" cx="146" cy="118" rx="20" ry="20"/><text class="bzl" x="174" y="114">Upper Back</text>
-        <ellipse class="bz" data-z="midback" cx="130" cy="170" rx="26" ry="22"/><text class="bzl" x="96" y="174" text-anchor="end">Mid Back</text>
-        <ellipse class="bz" data-z="lowerback" cx="130" cy="222" rx="28" ry="24"/><text class="bzl" x="166" y="226">Lower Back</text>
-        <ellipse class="bz" data-z="sacrum" cx="130" cy="262" rx="20" ry="14"/><text class="bzl" x="102" y="266" text-anchor="end">Sacrum</text>
-        <ellipse class="bz" data-z="glute_l" cx="115" cy="284" rx="18" ry="14"/><ellipse class="bz" data-z="glute_r" cx="145" cy="284" rx="18" ry="14"/><text class="bzl" x="170" y="288">Glutes</text>
-        <ellipse class="bz" data-z="hamstring_l" cx="112" cy="340" rx="14" ry="32"/><ellipse class="bz" data-z="hamstring_r" cx="148" cy="340" rx="14" ry="32"/><text class="bzl" x="90" y="344" text-anchor="end">Hamstrings</text>
-        <ellipse class="bz" data-z="calf_l" cx="108" cy="410" rx="12" ry="28"/><ellipse class="bz" data-z="calf_r" cx="152" cy="410" rx="12" ry="28"/><text class="bzl" x="171" y="414">Calves</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="head_back" cx="130" cy="42" rx="22" ry="16"/><text class="bzl" x="160" y="42">Back of Head</text>
+        <rect class="bz" onclick="bmZoneClick(this)" data-z="neck_back" x="114" y="78" width="32" height="14" rx="5"/><text class="bzl" x="106" y="88" text-anchor="end">Neck</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="upperback_l" cx="114" cy="118" rx="20" ry="20"/><ellipse class="bz" onclick="bmZoneClick(this)" data-z="upperback_r" cx="146" cy="118" rx="20" ry="20"/><text class="bzl" x="174" y="114">Upper Back</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="midback" cx="130" cy="170" rx="26" ry="22"/><text class="bzl" x="96" y="174" text-anchor="end">Mid Back</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="lowerback" cx="130" cy="222" rx="28" ry="24"/><text class="bzl" x="166" y="226">Lower Back</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="sacrum" cx="130" cy="262" rx="20" ry="14"/><text class="bzl" x="102" y="266" text-anchor="end">Sacrum</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="glute_l" cx="115" cy="284" rx="18" ry="14"/><ellipse class="bz" onclick="bmZoneClick(this)" data-z="glute_r" cx="145" cy="284" rx="18" ry="14"/><text class="bzl" x="170" y="288">Glutes</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="hamstring_l" cx="112" cy="340" rx="14" ry="32"/><ellipse class="bz" onclick="bmZoneClick(this)" data-z="hamstring_r" cx="148" cy="340" rx="14" ry="32"/><text class="bzl" x="90" y="344" text-anchor="end">Hamstrings</text>
+        <ellipse class="bz" onclick="bmZoneClick(this)" data-z="calf_l" cx="108" cy="410" rx="12" ry="28"/><ellipse class="bz" onclick="bmZoneClick(this)" data-z="calf_r" cx="152" cy="410" rx="12" ry="28"/><text class="bzl" x="171" y="414">Calves</text>
         </svg>
         </div>
       </div>
@@ -491,7 +510,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
         <div style="font-size:10px;color:var(--text3);line-height:1.5;max-width:320px;margin:0 auto">This is a self-assessment tool based on clinical research. It is not a medical diagnosis. Consult a healthcare professional for medical concerns.</div>
         <div style="font-size:9px;color:var(--text3);margin-top:8px;letter-spacing:.5px">© 2026 Dr. Tatiana D'Angeli. All rights reserved.</div>
         <a href="https://www.instagram.com/dr.dangeli.tatiana" target="_blank" style="color:var(--accent);text-decoration:none;font-size:11px;display:inline-block;margin-top:4px">@dr.dangeli.tatiana</a>
-        <div style="margin-top:6px"><a href="mailto:support@drdangeli.com" style="color:var(--text3);font-size:10px;text-decoration:none;">Need help? support@drdangeli.com</a></div>
+        <div style="margin-top:6px"><a href="/cdn-cgi/l/email-protection#e1929491918e9395a1859385808f86848d88cf828e8c" style="color:var(--text3);font-size:10px;text-decoration:none;">Need help? <span class="__cf_email__" data-cfemail="12616762627d606652766076737c75777e7b3c717d7f">[email&#160;protected]</span></a></div>
         <div style="margin-top:4px"><a href="/privacy.html" style="color:var(--text3);font-size:9px;text-decoration:none;">Privacy Policy & Terms</a></div>
       </div>
     </div>
@@ -544,7 +563,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
         @dr.dangeli.tatiana
       </a>
-      <div style="margin-top:8px"><a href="mailto:support@drdangeli.com" style="color:var(--text3);font-size:10px;text-decoration:none;">Need help? support@drdangeli.com</a></div>
+      <div style="margin-top:8px"><a href="/cdn-cgi/l/email-protection#7b080e0b0b14090f3b1f091f1a151c1e171255181416" style="color:var(--text3);font-size:10px;text-decoration:none;">Need help? <span class="__cf_email__" data-cfemail="097a7c7979667b7d496d7b6d68676e6c6560276a6664">[email&#160;protected]</span></a></div>
       <div style="margin-top:4px"><a href="/privacy.html" style="color:var(--text3);font-size:9px;text-decoration:none;">Privacy Policy & Terms</a></div>
     </div>
   </div>
@@ -581,6 +600,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
       <div id="r-bodymap"></div>
       <div id="r-protocol"></div>
       <div id="r-dontdo"></div>
+      <!-- Paid section divider: pricing table for free users -->
+      <div id="r-paid-divider"></div>
+
       <div id="r-selfesteem"></div>
       <div id="r-programs"></div>
       <div id="r-relationships"></div>
@@ -644,7 +666,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
           <a class="disabled" id="auth-resend-link" onclick="authResendOtp()">Resend code</a>
           <span id="auth-resend-timer"> (60s)</span>
         </div>
-        <div class="auth-help">Need help? <a href="mailto:support@drdangeli.com">support@drdangeli.com</a></div>
+        <div class="auth-help">Need help? <a href="/cdn-cgi/l/email-protection#b7c4c2c7c7d8c5c3f7d3c5d3d6d9d0d2dbde99d4d8da" style="color:var(--text3);text-decoration:none;"><span class="__cf_email__" data-cfemail="067573767669747246627462676861636a6f2865696b">[email&#160;protected]</span></a></div>
       </div>
     </div>
   </div>
@@ -693,7 +715,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
         <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--accent);margin-bottom:12px;">Need Help?</div>
         <div style="text-align:center;">
           <a href="https://t.me/drdangeli_ai_bot" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:var(--accent-dim);border:1px solid rgba(201,168,124,0.2);border-radius:12px;color:var(--accent);text-decoration:none;font-size:14px;font-weight:500;font-family:var(--sans);">💬 Ask Assistant</a>
-          <div style="margin-top:12px;font-size:13px;color:var(--text3);">Or email support@drdangeli.com</div>
+          <div style="margin-top:12px;font-size:13px;color:var(--text3);">Or email <a href="/cdn-cgi/l/email-protection#097a7c7979667b7d496d7b6d68676e6c6560276a6664" style="color:var(--text3);text-decoration:none;"><span class="__cf_email__" data-cfemail="d6a5a3a6a6b9a4a296b2a4b2b7b8b1b3babff8b5b9bb">[email&#160;protected]</span></a></div>
         </div>
       </div>
 
@@ -712,53 +734,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 <div class="paywall" id="paywall">
   <div class="paywall-card">
     <div style="text-align:center;font-size:28px;margin-bottom:12px;">📊</div>
-    <h2>Your tracker has just begun</h2>
-    <p class="pw-sub">You already see the first data points. The real pattern emerges after 2-4 weeks, when the tracker reveals which days and why your nervous system goes out of regulation. Keep going and watch the shifts.</p>
+    <h2>Your free days are over</h2>
+    <p class="pw-sub">You've completed your free check-ins and seen how your nervous system works. To keep tracking your pattern and get daily exercises matched to your state, choose a plan.</p>
 
-    <div style="margin-bottom:20px;">
-      <div style="font-size:13px;color:var(--text2);line-height:1.8;">
-        You've seen the first snapshot. But one check-in shows a moment. A month of check-ins reveals the pattern: which days your nervous system crashes, what triggers it, and what pulls you back. That pattern is worth more than a year of guessing.
-      </div>
-    </div>
-
-    <div class="plan" id="plan-base" onclick="selectPlan('base')">
-      <div class="plan-name">Basic</div>
-      <div class="plan-price">$9.90 <small>/ mo</small></div>
-      <div class="plan-features">
-        <span>&#10003; Daily 3-minute check-in: track your nervous system state every morning</span>
-        <span>&#10003; 30-day color-coded pattern tracker: see which days you're activated, shut down, or regulated</span>
-        <span>&#10003; Personalized exercise each day, matched to your state (120 protocols from polyvagal theory)</span>
-        <span>&#10003; "What's happening in your body" + regulation protocol</span>
-        <span>&#10003; Self-worth and inner stability: how your nervous system affects your sense of your own value</span>
-      </div>
-    </div>
-    <div class="plan" id="plan-full" onclick="selectPlan('full')">
-      <div class="plan-name">Full</div>
-      <div class="plan-price">$14.90 <small>/ mo</small></div>
-      <div class="plan-features">
-        <span>&#10003; Everything in Basic</span>
-        <span>&#10003; Which subconscious patterns from childhood are running your decisions right now</span>
-        <span>&#10003; How your state shapes your relationships with partner, children, and the world</span>
-        <span>&#10003; How your nervous system drives your financial behavior and major life decisions</span>
-        <span>&#10003; Crisis protocol: what to do when everything falls apart</span>
-      </div>
-    </div>
-    <div class="plan plan-yearly selected" id="plan-yearly" onclick="selectPlan('yearly')">
-      <div class="plan-badge">Best value</div>
-      <div class="plan-name">Annual</div>
-      <div class="plan-price">$99 <small>/ year</small></div>
-      <div class="plan-saving">Save $79.80 ($8.25/mo instead of $14.90)</div>
-      <div class="plan-features">
-        <span>&#10003; Everything in Full</span>
-        <span>&#10003; What to eat based on your state: specific foods, supplements, meal timing for each NS pattern</span>
-        <span>&#10003; Sleep protocol: why you wake at 3 AM, what to do before bed, how to reset your circadian rhythm</span>
-        <span>&#10003; Daily routine matched to your nervous system: morning, afternoon, evening structure</span>
-        <span>&#10003; Guided audio practices recorded by Dr. D'Angeli (15 min each)</span>
-        <span>&#10003; Book: "Why Your Body Won't Let You Earn More" — included free</span>
-        <span>&#10003; Monthly analytics: trends, triggers, progress over time</span>
-      </div>
-    </div>
-    <button class="btn btn-primary" style="margin-top:16px" onclick="handlePay()">Subscribe</button>
+    <button class="btn btn-primary" style="margin-top:16px;font-size:16px;padding:16px;" onclick="closePaywall();var _d=lsj('data')||{};var _days=_d.days||{};var _keys=Object.keys(_days).sort();if(_keys.length>0){showResult(_days[_keys[_keys.length-1]]);}setTimeout(function(){var el=document.getElementById('r-paid-divider');if(el&&el.innerHTML)el.scrollIntoView({behavior:'smooth'});},400);">Choose your plan</button>
     <button class="btn btn-ghost" onclick="closePaywall()">Not now</button>
     <div style="text-align:center;font-size:11px;color:var(--text3);margin-top:12px;line-height:1.5;">Cancel anytime · Secure payment via Stripe</div>
     <div style="text-align:center;margin-top:8px"><a href="mailto:support@drdangeli.com" style="color:var(--text3);font-size:11px;text-decoration:none;">Questions? support@drdangeli.com</a></div>
@@ -811,13 +790,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 
 // ============================================================
-// BODY MAP DATA & LOGIC
+// BODY MAP DATA & LOGIC (BM, ZN, bmBase, bmZoneClick, bmUpd, bmView defined in early <script>)
 // ============================================================
-const BM={zones:new Set(),sens:{},dur:{},ctx:[]};
-const ZN={forehead:'Forehead',eyes:'Eyes',jaw:'Jaw',throat:'Throat',shoulder:'Shoulders',chest:'Chest',solar:'Solar Plexus',stomach:'Stomach',pelvis:'Pelvis',hand:'Hands',knee:'Knees',shin:'Shins',feet:'Feet',head_back:'Back of Head',neck_back:'Neck (back)',upperback:'Upper Back',midback:'Mid Back',lowerback:'Lower Back',sacrum:'Sacrum',glute:'Glutes',hamstring:'Hamstrings',calf:'Calves'};
 const SZ={
 forehead:['Pressure','Throbbing','Heaviness','Tight like a band'],
 eyes:['Tired','Burning','Dryness','Twitching eyelid'],
@@ -840,6 +817,9 @@ lowerback:['Aching','Shooting pain','Radiates to leg','Constant tension'],
 sacrum:['Pulling','Pressure','Painful to sit'],
 glute:['Tense','Numb when sitting','Spasm'],
 hamstring:['Pulling','Stiffness','Cramp'],
+nose:['Congestion','Dryness','Pressure','Blocked'],
+ear_l:['Ringing','Buzzing','Stuffiness','Pain'],
+ear_r:['Ringing','Buzzing','Stuffiness','Pain'],
 calf:['Cramps','Heavy','Buzzing']
 };
 
@@ -978,34 +958,22 @@ const BMSN={
 'head_back|Throbbing':'Occipital throbbing \u2014 the vertebral arteries pass through the cervical vertebrae. Muscle tension can compress them.',
 'shin|Heavy':'Heavy shins \u2014 impaired venous drainage. The sympathetic system controls venous tone.',
 'shin|Cramps':'Cramps \u2014 disrupted excitation/inhibition balance in motor neurons. Elevated sympathetic tone lowers the excitability threshold.',
-'shin|Swelling':'Shin swelling \u2014 impaired lymphatic and venous drainage from chronic vascular tone changes.'
+'shin|Swelling':'Shin swelling \u2014 impaired lymphatic and venous drainage from chronic vascular tone changes.',
+'nose|Congestion':'Chronic congestion without a cold \u2014 mucosal swelling from sympathetic activation. Cortisol disrupts mucus production, sinus blood vessels spasm, tissues swell. The body restricts nasal breathing as part of a freeze response. A second mechanism: suppressed crying. Tear ducts connect to the nasal cavity, and blocked tears create swelling from within.',
+'nose|Pressure':'Sinus pressure without a cold \u2014 facial muscle spasm compresses the maxillary and frontal sinuses. Sympathetic activation constricts mucosal blood vessels, impairs drainage, causes stagnation. Chronic sinusitis that does not respond to antibiotics often has a nervous system origin.',
+'nose|Dryness':'Dry nasal passages \u2014 adrenaline redirects blood flow from mucous membranes to muscles. Under chronic stress the mucosa dries out, thins, and cracks. Frequent stress-related nosebleeds work through the same mechanism: fragile vessels with disrupted tone.',
+'nose|Blocked':'One or both nostrils blocked without a cold \u2014 the autonomic nervous system controls the nasal cycle through alternating turbinate swelling. When dysregulated, the cycle breaks: one side swells and blocks airflow for hours. Mouth breathing further activates the sympathetic system, creating a self-reinforcing loop.',
+'ear_l|Ringing':'Tinnitus \u2014 hyperexcitation of the auditory nerve during sympathetic hyperactivation. Cortisol amplifies sound perception.',
+'ear_r|Ringing':'Tinnitus \u2014 hyperexcitation of the auditory nerve during sympathetic hyperactivation. Cortisol amplifies sound perception.',
+'ear_l|Stuffiness':'Ear stuffiness \u2014 tension in the jaw muscles and temporal bone blocks the Eustachian tube. Linked to chronic stress.',
+'ear_r|Stuffiness':'Ear stuffiness \u2014 tension in the jaw muscles and temporal bone blocks the Eustachian tube. Linked to chronic stress.',
+'ear_l|Buzzing':'Low-frequency ear buzzing \u2014 the tensor tympani muscle spasms under stress. It is innervated by the trigeminal nerve, which is stress-sensitive.',
+'ear_r|Buzzing':'Low-frequency ear buzzing \u2014 the tensor tympani muscle spasms under stress. It is innervated by the trigeminal nerve, which is stress-sensitive.',
+'ear_l|Pain':'Ear pain without infection \u2014 referred pain from the TMJ and surrounding muscles through shared innervation of the auriculotemporal nerve.',
+'ear_r|Pain':'Ear pain without infection \u2014 referred pain from the TMJ and surrounding muscles through shared innervation of the auriculotemporal nerve.'
 };
 
-function bmBase(z){
-  const p={shoulder:'shoulder',chest:'chest',stomach:'stomach',hand:'hand',knee:'knee',shin:'shin',feet:'feet',eyes:'eyes',upperback:'upperback',glute:'glute',hamstring:'hamstring',calf:'calf'};
-  for(const[k,v]of Object.entries(p)){if(z.startsWith(k))return v}
-  return z;
-}
-
-function bmView(v,btn){
-  document.querySelectorAll('.bm-vt').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  document.querySelectorAll('.bm-v').forEach(x=>x.classList.remove('on'));
-  document.getElementById(v==='f'?'bmFront':'bmBack').classList.add('on');
-  document.getElementById('bmHint').textContent=v==='f'?"Don't forget to check your back":"Don't forget to check the front";
-}
-
-document.addEventListener('DOMContentLoaded',()=>{
-  document.querySelectorAll('.bz[data-z]').forEach(el=>{el.addEventListener('click',()=>{
-    const b=bmBase(el.dataset.z);
-    const all=[];document.querySelectorAll('[data-z]').forEach(x=>{if(bmBase(x.dataset.z)===b)all.push(x)});
-    if(BM.zones.has(b)){BM.zones.delete(b);all.forEach(x=>x.classList.remove('sel'))}
-    else{BM.zones.add(b);all.forEach(x=>x.classList.add('sel'));if(BM.zones.size===1)gev('bodymap_first_tap',{zone:b});}
-    bmUpd();
-  })});
-});
-
-function bmUpd(){const n=BM.zones.size;const el=document.getElementById('bmSelC');const btn=document.getElementById('bmB1');if(!n){el.textContent='';btn.disabled=true}else{el.textContent='Selected: '+Array.from(BM.zones).map(z=>ZN[z]||z).join(', ');btn.disabled=false}}
+// bmBase, bmView, bmZoneClick, bmUpd — already defined in early <script> before body map
 
 function bmGo(step){
   document.querySelectorAll('.bm-step').forEach(s=>s.classList.remove('on'));
@@ -1808,7 +1776,7 @@ function renderToday(){
       var msgs=['Low energy today. Be gentle with yourself. Even opening this app took effort — and you did it.','Your system pulled the brakes. That heaviness is protective, not permanent. One small movement today is enough.','A shutdown day. You showed up anyway. That matters more than you think.'];
       caring=msgs[numDays%msgs.length];
     } else if(todayState==='freeze'){
-      var msgs=['Stuck today. The engine is running but the gears won\'t engage. Your protocol has a specific exercise for this.','Wired and tired at the same time. Your body is in conflict. The bilateral tapping in your protocol can help unlock it.','A freeze day. You\'re not broken. Two systems are fighting for control. The exercises help them negotiate.'];
+      var msgs=['Stuck today. The engine is running but the gears won\'t engage. Your protocol has a specific exercise for this.','Wired and tired at the same time. Your body is in conflict. The bilateral tapping in your protocol can help unlock it.','A freeze day. Two systems are fighting for control. The exercises in your protocol help them negotiate.'];
       caring=msgs[numDays%msgs.length];
     }
 
@@ -1919,7 +1887,7 @@ function renderTracker(d){
     el.textContent=dt.getDate();
     const isFuture=ds>getTodayStr();
     if(d.days[ds]){el.classList.add('filled',d.days[ds]);}
-    else if(!isFuture&&ds!==getTodayStr()){el.style.opacity='0.3';} // Missed day — faded
+    else if(!isFuture&&ds!==getTodayStr()){el.style.opacity='0.6';} // Missed day — faded
     if(ds===getTodayStr())el.classList.add('today');
     if(d.days[ds])el.onclick=()=>showResult(d.days[ds]);
     grid.appendChild(el);
@@ -1985,12 +1953,12 @@ function finishCheckin(){
     const sc=questions[i].options[a].scores;
     if(sc){s+=sc.s;d+=sc.d;f+=sc.f;}
   });
-  let state='ventral';
-  const max=Math.max(s,d,f);
-  if(max===0)state='ventral';
-  else if(s>=d&&s>=f)state='sympathetic';
-  else if(d>=s&&d>=f)state='dorsal';
-  else state='freeze';
+  const tot=s+d+f;
+  let state;
+  if(tot<=3)state='ventral';
+  else if(f>=s&&f>=d)state='freeze';
+  else if(s>d)state='sympathetic';
+  else state='dorsal';
 
   gev('checkin_completed',{ns_state:state});
 
@@ -2119,81 +2087,161 @@ function showResult(stateKey){
     g('r-bodymap').innerHTML='';
   }
 
-  // Self-esteem (basic + full + yearly — paid only)
-  if(hasSub){
-    g('r-selfesteem').innerHTML='<div class="section-block"><div class="section-title">Self-worth and inner stability</div><div class="insight-block '+st.color+'">'+st.selfesteem.insight+'</div>'+st.selfesteem.details.map(d=>'<div class="card"><strong>'+d.t+'</strong><p>'+d.p+'</p></div>').join('')+'</div>';
-  } else {
-    g('r-selfesteem').innerHTML='<div class="section-block"><div class="section-title">Self-worth and inner stability</div><div class="whatnext"><p>How your nervous system state affects your self-worth, inner stability, and sense of your own value.</p><button class="btn btn-primary" onclick="showPaywall()">Unlock with Basic — $9.90/mo</button></div></div>';
-  }
-
-  // Programs (full plan)
-  if(plan==='full'||plan==='yearly'){
-    g('r-programs').innerHTML='<div class="section-block"><div class="section-title">Subconscious patterns</div><div class="insight-block '+st.color+'">'+st.programs.insight+'</div><div class="recognize-list">'+st.programs.items.map(p=>'<div class="recognize-item"><span class="ri-mark">›</span>'+p+'</div>').join('')+'</div></div>';
-  } else {
-    g('r-programs').innerHTML='<div class="section-block"><div class="section-title">Subconscious patterns</div><div class="whatnext"><p>Which subconscious patterns from childhood are active right now and how they control your decisions.</p><button class="btn btn-primary" onclick="showPaywall()">Unlock with Full — $14.90/mo</button></div></div>';
-  }
-
-  // Relationships (full plan)
-  if(plan==='full'||plan==='yearly'){
-    g('r-relationships').innerHTML='<div class="section-block"><div class="section-title">Relationships</div><div class="insight-block '+st.color+'">'+st.relationships.insight+'</div>'+st.relationships.details.map(d=>'<div class="card"><strong>'+d.t+'</strong><p>'+d.p+'</p></div>').join('')+'</div>';
-  } else {
-    g('r-relationships').innerHTML='<div class="section-block"><div class="section-title">Relationships</div><div class="whatnext"><p>How your nervous system state shapes your behavior with your partner, children, and the world.</p><button class="btn btn-primary" onclick="showPaywall()">Unlock with Full — $14.90/mo</button></div></div>';
-  }
-
-  // Finance (full plan)
-  if(plan==='full'||plan==='yearly'){
-    g('r-finance').innerHTML='<div class="section-block"><div class="section-title">Finances and decisions</div><div class="insight-block '+st.color+'">'+st.finance+'</div></div>';
-  } else {
-    g('r-finance').innerHTML='<div class="section-block"><div class="section-title">Finances and decisions</div><div class="whatnext"><p>How your nervous system state drives your financial behavior and major life decisions.</p><button class="btn btn-primary" onclick="showPaywall()">Unlock with Full — $14.90/mo</button></div></div>';
-  }
-
-  // Crisis (full plan)
-  if(plan==='full'||plan==='yearly'){
-    g('r-crisis').innerHTML='<div class="section-block"><div class="section-title">In a crisis</div><div class="insight-block '+st.color+'">'+st.crisis+'</div></div>';
-  } else {
-    g('r-crisis').innerHTML='<div class="section-block"><div class="section-title">In a crisis</div><div class="whatnext"><p>What happens to your nervous system in a crisis and how to make decisions when everything falls apart.</p><button class="btn btn-primary" onclick="showPaywall()">Unlock with Full — $14.90/mo</button></div></div>';
-  }
-
   // Protocol (all plans)
   g('r-protocol').innerHTML='<div class="section-block"><div class="section-title">Your protocol for today</div>'+st.protocol.map(p=>'<div class="card"><strong>'+p.t+'</strong><p>'+p.p+'</p></div>').join('')+'</div>';
 
   // Don't do (all plans)
   g('r-dontdo').innerHTML='<div class="section-block"><div class="section-title">What not to do today</div>'+st.dontdo.map(d=>'<div class="card"><strong>'+d.t+'</strong><p>'+d.p+'</p></div>').join('')+'</div>';
 
+  // Paid divider + pricing table (for free users)
+  if(!hasSub){
+    var _pt='<div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 14px;margin:16px 0 20px;">';
+    _pt+='<div style="text-align:center;font-size:20px;font-weight:800;color:var(--text);margin-bottom:6px;">Choose your regulation level</div>';
+    _pt+='<div style="text-align:center;font-size:12px;color:var(--text3);margin-bottom:16px;">Tap a plan to see what\u2019s inside</div>';
+    // Table
+    _pt+='<table style="width:100%;border-collapse:separate;border-spacing:0;font-size:13px;">';
+    _pt+='<thead><tr><th style="text-align:left;padding:10px 4px 8px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;border-bottom:2px solid var(--border);"></th>';
+    _pt+='<th style="padding:10px 4px 8px;text-align:center;font-weight:800;color:#5a9e8e;border-bottom:2px solid var(--border);">Basic<span style="display:block;font-size:10px;opacity:0.6;">$9.90</span></th>';
+    _pt+='<th style="padding:10px 4px 8px;text-align:center;font-weight:800;color:var(--accent);border-bottom:2px solid var(--border);background:rgba(201,168,124,0.04);"><span style="font-size:8px;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(201,168,124,0.15);color:var(--accent);">\u2B50 POPULAR</span><br>Full<span style="display:block;font-size:10px;opacity:0.6;">$14.90</span></th>';
+    _pt+='<th style="padding:10px 4px 8px;text-align:center;font-weight:800;color:#d4b85a;border-bottom:2px solid var(--border);"><span style="font-size:8px;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(212,184,90,0.15);color:#d4b85a;">\uD83D\uDC8E BEST VALUE</span><br>Annual<span style="display:block;font-size:10px;opacity:0.6;">$99/yr</span></th>';
+    _pt+='</tr></thead><tbody>';
+    var _rows=[
+      ['\uD83E\uDDD8','Check-in',1,1,1],['\uD83D\uDE30','Anxiety',1,1,1],['\uD83D\uDE34','Sleep',1,1,1],['\u26A1','Energy',1,1,1],['\uD83D\uDCC5','Tracker',1,1,1],
+      ['SEP'],
+      ['\uD83D\uDC8E','Self-worth',0,1,1],['\uD83D\uDC95','Relationships',0,1,1],['\uD83D\uDCB0','Decisions',0,1,1],['\uD83E\uDDE0','Patterns',0,1,1],['\uD83C\uDD98','Crisis',0,1,1],
+      ['SEP'],
+      ['\uD83C\uDFA7','Audio',0,0,1],['\uD83C\uDF7D\uFE0F','Nutrition + suppl.',0,0,1],['\uD83C\uDF19','Sleep protocol',0,0,1],['\uD83D\uDCCB','Daily routine',0,0,1],['\uD83D\uDCCA','Monthly report',0,0,1]
+    ];
+    var _cb='#5a9e8e',_cf='var(--accent)',_cy='#d4b85a',_cl='var(--border)',_bg2='background:rgba(201,168,124,0.02);';
+    _rows.forEach(function(r){
+      if(r[0]==='SEP'){_pt+='<tr><td colspan="4" style="padding:4px 0;border-bottom:2px solid var(--border);"></td></tr>';return;}
+      _pt+='<tr><td style="padding:10px 4px;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="font-size:16px;">'+r[0]+'</span> <span style="font-weight:700;">'+r[1]+'</span></td>';
+      _pt+='<td style="text-align:center;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,0.04);color:'+(r[2]?_cb:_cl)+';">'+(r[2]?'\u2713':'\uD83D\uDD12')+'</td>';
+      _pt+='<td style="text-align:center;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,0.04);color:'+(r[3]?_cf:_cl)+';'+_bg2+'">'+(r[3]?'\u2713':'\uD83D\uDD12')+'</td>';
+      _pt+='<td style="text-align:center;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,0.04);color:'+(r[4]?_cy:_cl)+';">'+(r[4]?'\u2713':'\uD83D\uDD12')+'</td></tr>';
+    });
+    _pt+='</tbody></table>';
+    // Buttons
+    _pt+='<div style="display:flex;gap:8px;margin-top:16px;">';
+    _pt+='<button onclick="document.getElementById(\'pt-d-b\').style.display=\'block\';document.getElementById(\'pt-d-f\').style.display=\'none\';document.getElementById(\'pt-d-y\').style.display=\'none\';this.parentElement.parentElement.querySelector(\'.pt-scroll-target\').scrollIntoView({behavior:\'smooth\'});" style="flex:1;padding:14px 6px;border:1.5px solid rgba(90,158,142,0.25);border-radius:12px;background:rgba(90,158,142,0.08);color:#5a9e8e;font-family:var(--sans);font-weight:800;font-size:14px;cursor:pointer;line-height:1.3;">$9.90<span style="display:block;font-size:9px;font-weight:700;opacity:0.6;margin-top:2px;">more \u2192</span></button>';
+    _pt+='<button onclick="document.getElementById(\'pt-d-f\').style.display=\'block\';document.getElementById(\'pt-d-b\').style.display=\'none\';document.getElementById(\'pt-d-y\').style.display=\'none\';this.parentElement.parentElement.querySelector(\'.pt-scroll-target\').scrollIntoView({behavior:\'smooth\'});" style="flex:1.3;padding:14px 6px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--accent),#e8c87c);color:var(--bg);font-family:var(--sans);font-weight:800;font-size:14px;cursor:pointer;line-height:1.3;box-shadow:0 4px 20px rgba(201,168,124,0.25);">$14.90<span style="display:block;font-size:9px;font-weight:700;opacity:0.6;margin-top:2px;">more \u2192</span></button>';
+    _pt+='<button onclick="document.getElementById(\'pt-d-y\').style.display=\'block\';document.getElementById(\'pt-d-b\').style.display=\'none\';document.getElementById(\'pt-d-f\').style.display=\'none\';this.parentElement.parentElement.querySelector(\'.pt-scroll-target\').scrollIntoView({behavior:\'smooth\'});" style="flex:1;padding:14px 6px;border:none;border-radius:12px;background:linear-gradient(135deg,#c9a84e,#e8d07c);color:var(--bg);font-family:var(--sans);font-weight:800;font-size:14px;cursor:pointer;line-height:1.3;">$99/yr<span style="display:block;font-size:9px;font-weight:700;opacity:0.6;margin-top:2px;">more \u2192</span></button>';
+    _pt+='</div>';
+    _pt+='<div class="pt-scroll-target"></div>';
+    // DETAIL: Basic
+    _pt+='<div id="pt-d-b" style="display:none;margin-top:14px;background:var(--bg2);border:1px solid rgba(90,158,142,0.2);border-radius:14px;padding:20px;">';
+    _pt+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div><div style="font-size:12px;font-weight:700;color:#5a9e8e;text-transform:uppercase;">Basic</div><div style="font-size:28px;font-weight:900;color:#5a9e8e;">$9.90<span style="font-size:14px;opacity:0.5;">/mo</span></div></div><button onclick="document.getElementById(\'pt-d-b\').style.display=\'none\'" style="background:rgba(255,255,255,0.06);border:none;color:var(--text3);width:32px;height:32px;border-radius:10px;font-size:18px;cursor:pointer;">\u2190</button></div>';
+    _pt+='<div style="font-size:14px;color:var(--text2);line-height:1.7;">';
+    _pt+='<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="font-size:20px;">\uD83E\uDDD8</span><div><strong style="color:var(--text);">Daily check-in</strong><br>7 questions, body map, personalized regulation protocol every morning.</div></div>';
+    _pt+='<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="font-size:20px;">\uD83D\uDE30</span><div><strong style="color:var(--text);">Anxiety &amp; panic</strong> \u2014 15 exercises<br>Breathing, grounding, somatic techniques for acute anxiety and panic attacks.</div></div>';
+    _pt+='<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="font-size:20px;">\uD83D\uDE34</span><div><strong style="color:var(--text);">Sleep</strong> \u2014 12 exercises<br>Switch from racing thoughts to deep sleep. Clinically-based protocols for each nervous system state.</div></div>';
+    _pt+='<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="font-size:20px;">\u26A1</span><div><strong style="color:var(--text);">Energy</strong> \u2014 10 exercises<br>Body-based activation without caffeine or willpower. Matched to your state.</div></div>';
+    _pt+='<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="font-size:20px;">\uD83D\uDCC5</span><div><strong style="color:var(--text);">30-day tracker</strong><br>Color-coded pattern map: see which days your nervous system crashes and what triggers it.</div></div>';
+    _pt+='<div style="display:flex;gap:12px;padding:10px 0;"><span style="font-size:20px;">\uD83D\uDC8E</span><div><strong style="color:var(--text);">Self-worth</strong><br>How your nervous system state affects your sense of your own value, inner stability, and confidence.</div></div>';
+    _pt+='</div>';
+    _pt+='<button class="btn btn-primary" style="width:100%;margin-top:16px;font-size:16px;padding:16px;" onclick="selectedPlan=\'base\';handlePay()">Start Basic \u2014 $9.90/mo</button>';
+    _pt+='<div style="text-align:center;font-size:11px;color:var(--text3);margin-top:6px;">Cancel anytime \u00B7 Secure payment via Stripe</div>';
+    _pt+='<div style="text-align:center;margin-top:12px;"><a href="mailto:support@drdangeli.com" style="font-size:12px;color:var(--text3);text-decoration:underline;">\u2709\uFE0F Questions? support@drdangeli.com</a></div>';
+    _pt+='</div>';
+    // DETAIL: Full
+    _pt+='<div id="pt-d-f" style="display:none;margin-top:14px;background:var(--bg2);border:1.5px solid rgba(201,168,124,0.25);border-radius:14px;padding:20px;">';
+    _pt+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div><div style="font-size:9px;font-weight:800;color:var(--accent);background:rgba(201,168,124,0.12);display:inline-block;padding:3px 8px;border-radius:6px;margin-bottom:6px;">\u2B50 MOST POPULAR</div><div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;">Full</div><div style="font-size:28px;font-weight:900;color:var(--accent);">$14.90<span style="font-size:14px;opacity:0.5;">/mo</span></div></div><button onclick="document.getElementById(\'pt-d-f\').style.display=\'none\'" style="background:rgba(255,255,255,0.06);border:none;color:var(--text3);width:32px;height:32px;border-radius:10px;font-size:18px;cursor:pointer;">\u2190</button></div>';
+    _pt+='<div style="padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:10px;font-size:12px;color:var(--text2);margin-bottom:14px;">\u2705 Everything in Basic plus:</div>';
+    _pt+='<div style="font-size:14px;color:var(--text2);line-height:1.7;">';
+    _pt+='<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="font-size:20px;">\uD83D\uDC8E</span><div><strong style="color:var(--text);">Self-worth</strong> \u2014 14 exercises<br>Impostor syndrome, inner critic, people-pleasing. Rebuild your sense of value through the body.</div></div>';
+    _pt+='<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="font-size:20px;">\uD83D\uDC95</span><div><strong style="color:var(--text);">Relationships</strong> \u2014 12 exercises<br>Withdrawal, reactivity, losing yourself in a partner. How your nervous system runs your closest bonds.</div></div>';
+    _pt+='<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="font-size:20px;">\uD83D\uDCB0</span><div><strong style="color:var(--text);">Financial decisions</strong> \u2014 10 exercises<br>Avoidance, impulsive spending, freezing on big decisions. Your nervous system state drives how you handle money.</div></div>';
+    _pt+='<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="font-size:20px;">\uD83E\uDDE0</span><div><strong style="color:var(--text);">Subconscious patterns</strong> \u2014 12 exercises<br>Childhood programming that still runs your decisions. Somatic techniques to rewrite deep-seated patterns.</div></div>';
+    _pt+='<div style="display:flex;gap:12px;padding:10px 0;"><span style="font-size:20px;">\uD83C\uDD98</span><div><strong style="color:var(--text);">Crisis protocol</strong> \u2014 8 exercises<br>Panic, shutdown, dissociation. Get back into your body in 2\u20135 minutes.</div></div>';
+    _pt+='</div>';
+    _pt+='<button class="btn btn-primary" style="width:100%;margin-top:16px;font-size:16px;padding:16px;" onclick="selectedPlan=\'full\';handlePay()">Full access \u2014 $14.90/mo</button>';
+    _pt+='<div style="text-align:center;font-size:11px;color:var(--text3);margin-top:6px;">Cancel anytime \u00B7 93 exercises \u00B7 Secure payment via Stripe</div>';
+    _pt+='<div style="text-align:center;margin-top:12px;"><a href="mailto:support@drdangeli.com" style="font-size:12px;color:var(--text3);text-decoration:underline;">\u2709\uFE0F Questions? support@drdangeli.com</a></div>';
+    _pt+='</div>';
+    // DETAIL: Yearly
+    _pt+='<div id="pt-d-y" style="display:none;margin-top:14px;background:var(--bg2);border:1.5px solid rgba(212,184,90,0.3);border-radius:14px;padding:20px;">';
+    _pt+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div><div style="font-size:9px;font-weight:800;color:#d4b85a;background:rgba(212,184,90,0.12);display:inline-block;padding:3px 8px;border-radius:6px;margin-bottom:6px;">\uD83D\uDC8E BEST VALUE</div><div style="font-size:12px;font-weight:700;color:#d4b85a;text-transform:uppercase;">Annual</div><div style="font-size:28px;font-weight:900;color:#d4b85a;">$99<span style="font-size:14px;opacity:0.5;">/year</span></div><div style="font-size:12px;color:var(--text2);">$8.25/mo instead of $14.90 <span style="background:rgba(212,184,90,0.15);color:#d4b85a;padding:2px 6px;border-radius:5px;font-size:10px;font-weight:800;">\u221245%</span></div></div><button onclick="document.getElementById(\'pt-d-y\').style.display=\'none\'" style="background:rgba(255,255,255,0.06);border:none;color:var(--text3);width:32px;height:32px;border-radius:10px;font-size:18px;cursor:pointer;">\u2190</button></div>';
+    _pt+='<div style="padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:10px;font-size:12px;color:var(--text2);margin-bottom:14px;">\u2705 Everything in Full (93 exercises) plus:</div>';
+    _pt+='<div style="font-size:14px;color:var(--text2);line-height:1.7;">';
+    _pt+='<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="font-size:20px;">\uD83C\uDFA7</span><div><strong style="color:var(--text);">Guided audio practices</strong> \u2014 12 sessions<br>Recorded by Dr. D\u2019Angeli. 15-minute guided meditations for sleep, anxiety, energy recovery, and deep regulation.</div></div>';
+    _pt+='<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="font-size:20px;">\uD83C\uDF7D\uFE0F</span><div><strong style="color:var(--text);">Nutrition + supplements</strong><br>Daily personalized recommendations: foods, vitamins, minerals matched to your current state. Specific dosages based on clinical research.</div></div>';
+    _pt+='<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="font-size:20px;">\uD83C\uDF19</span><div><strong style="color:var(--text);">Sleep protocol</strong><br>Personalized evening and morning rituals based on your state. Concrete steps for falling asleep and waking up.</div></div>';
+    _pt+='<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="font-size:20px;">\uD83D\uDCCB</span><div><strong style="color:var(--text);">Daily routine</strong><br>A day structure that works with your nervous system. Changes every day based on your state.</div></div>';
+    _pt+='<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="font-size:20px;">\uD83D\uDCCA</span><div><strong style="color:var(--text);">Monthly report</strong><br>Full picture over 30 days: your progress, patterns, specific recommendations.</div></div>';
+    _pt+='<div style="display:flex;gap:12px;padding:10px 0;"><span style="font-size:20px;">\uD83D\uDCD6</span><div><strong style="color:var(--text);">Book (PDF)</strong><br>Why Your Body Won\u2019t Let You Earn More \u2014 by Dr. D\u2019Angeli. Neuroscience + 18 years of clinical practice.</div></div>';
+    _pt+='</div>';
+    _pt+='<button class="btn btn-primary" style="width:100%;margin-top:16px;font-size:16px;padding:16px;" onclick="selectedPlan=\'yearly\';handlePay()">Annual \u2014 $99/year</button>';
+    _pt+='<div style="text-align:center;font-size:11px;color:var(--text3);margin-top:6px;">Save $79.80 \u00B7 120+ exercises \u00B7 Everything included</div>';
+    _pt+='<div style="text-align:center;margin-top:12px;"><a href="mailto:support@drdangeli.com" style="font-size:12px;color:var(--text3);text-decoration:underline;">\u2709\uFE0F Questions? support@drdangeli.com</a></div>';
+    _pt+='</div>';
+    // Bottom
+    _pt+='<div style="text-align:center;font-size:11px;color:var(--text3);margin-top:14px;">\uD83D\uDD12 Cancel anytime \u00B7 Secure payment via Stripe</div>';
+    _pt+='</div>';
+    g('r-paid-divider').innerHTML=_pt;
+    // Clear all unlock sections - replaced by pricing table
+    g('r-selfesteem').innerHTML='';
+    g('r-programs').innerHTML='';
+    g('r-relationships').innerHTML='';
+    g('r-finance').innerHTML='';
+    g('r-crisis').innerHTML='';
+    g('r-audio').innerHTML='';
+    g('r-nutrition').innerHTML='';
+    g('r-sleep').innerHTML='';
+    g('r-routine').innerHTML='';
+    g('r-book').innerHTML='<div class="section-block"><div class="section-title">\uD83D\uDCD6 Book</div><div style="background:linear-gradient(135deg,rgba(201,168,124,0.08),rgba(201,168,124,0.02));border:1px solid rgba(201,168,124,0.2);border-radius:14px;padding:20px;text-align:center;"><div style="font-size:32px;margin-bottom:8px;">\uD83D\uDCD6</div><div style="font-family:var(--serif);font-size:17px;color:var(--text);margin-bottom:6px;">Coming soon</div><div style="font-size:12px;color:var(--text2);margin-bottom:4px;">Dr. Tatiana D\u2019Angeli</div><div style="font-size:12px;color:var(--accent);">Coming soon \u2014 included in Annual plan</div></div></div>';
+  } else {
+    g('r-paid-divider').innerHTML='';
+  }
+
+  // Self-esteem (Basic+)
+  if(hasSub){
+    g('r-selfesteem').innerHTML='<div class="section-block"><div class="section-title">Self-worth and inner stability</div><div class="insight-block '+st.color+'">'+st.selfesteem.insight+'</div>'+st.selfesteem.details.map(d=>'<div class="card"><strong>'+d.t+'</strong><p>'+d.p+'</p></div>').join('')+'</div>';
+  }
+
+  // Programs (full plan)
+  if(plan==='full'||plan==='yearly'){
+    g('r-programs').innerHTML='<div class="section-block"><div class="section-title">Subconscious patterns</div><div class="insight-block '+st.color+'">'+st.programs.insight+'</div><div class="recognize-list">'+st.programs.items.map(p=>'<div class="recognize-item"><span class="ri-mark">›</span>'+p+'</div>').join('')+'</div></div>';
+  } else if(hasSub){ g('r-programs').innerHTML=''; }
+
+  // Relationships (full plan)
+  if(plan==='full'||plan==='yearly'){
+    g('r-relationships').innerHTML='<div class="section-block"><div class="section-title">Relationships</div><div class="insight-block '+st.color+'">'+st.relationships.insight+'</div>'+st.relationships.details.map(d=>'<div class="card"><strong>'+d.t+'</strong><p>'+d.p+'</p></div>').join('')+'</div>';
+  } else if(hasSub){ g('r-relationships').innerHTML=''; }
+
+  // Finance (full plan)
+  if(plan==='full'||plan==='yearly'){
+    g('r-finance').innerHTML='<div class="section-block"><div class="section-title">Finances and decisions</div><div class="insight-block '+st.color+'">'+st.finance+'</div></div>';
+  } else if(hasSub){ g('r-finance').innerHTML=''; }
+
+  // Crisis (full plan)
+  if(plan==='full'||plan==='yearly'){
+    g('r-crisis').innerHTML='<div class="section-block"><div class="section-title">In a crisis</div><div class="insight-block '+st.color+'">'+st.crisis+'</div></div>';
+  } else if(hasSub){ g('r-crisis').innerHTML=''; }
+
   // Audio (yearly)
   if(plan==='yearly'){
     g('r-audio').innerHTML='<div class="section-block"><div class="section-title">Guided audio practice</div><div style="background:linear-gradient(135deg,rgba(201,168,124,0.08),rgba(201,168,124,0.02));border:1px solid rgba(201,168,124,0.2);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;"><div style="width:44px;height:44px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🎧</div><div><div style="font-size:14px;color:var(--text);font-weight:500;">Audio practice: '+st.name+'</div><div style="font-size:12px;color:var(--accent);margin-top:2px;">15 min · Dr. D\'Angeli · Coming soon</div></div></div></div>';
-  } else {
-    g('r-audio').innerHTML='<div class="section-block"><div class="section-title">Guided audio practice</div><div class="whatnext"><p>15-minute guided practice matched to your state, recorded by Dr. D\'Angeli.</p><button class="btn btn-primary" onclick="showPaywall()">Unlock with Annual — $99/year</button></div></div>';
-  }
+  } else if(hasSub){ g('r-audio').innerHTML=''; }
 
   // Nutrition (yearly)
   if(plan==='yearly'){
     renderYearlyModule('r-nutrition','🥗','Nutrition protocol',getNutritionContent(stateKey));
-  } else {
-    g('r-nutrition').innerHTML='<div class="section-block"><div class="section-title">🥗 Nutrition protocol</div><div class="whatnext"><p>What to eat and which supplements support your nervous system in this state.</p><button class="btn btn-primary" onclick="showPaywall()">Unlock with Annual — $99/year</button></div></div>';
-  }
+  } else if(hasSub){ g('r-nutrition').innerHTML=''; }
 
   // Sleep (yearly)
   if(plan==='yearly'){
     renderYearlyModule('r-sleep','🌙','Sleep protocol',getSleepContent(stateKey));
-  } else {
-    g('r-sleep').innerHTML='<div class="section-block"><div class="section-title">🌙 Sleep protocol</div><div class="whatnext"><p>How your nervous system state affects your sleep and what to do about it tonight.</p><button class="btn btn-primary" onclick="showPaywall()">Unlock with Annual — $99/year</button></div></div>';
-  }
+  } else if(hasSub){ g('r-sleep').innerHTML=''; }
 
   // Routine (yearly)
   if(plan==='yearly'){
     renderYearlyModule('r-routine','📋','Daily routine',getRoutineContent(stateKey));
-  } else {
-    g('r-routine').innerHTML='<div class="section-block"><div class="section-title">📋 Daily routine</div><div class="whatnext"><p>A structured daily routine designed for your current nervous system state.</p><button class="btn btn-primary" onclick="showPaywall()">Unlock with Annual — $99/year</button></div></div>';
-  }
+  } else if(hasSub){ g('r-routine').innerHTML=''; }
 
   // Book (yearly)
   if(plan==='yearly'){
     g('r-book').innerHTML='<div class="section-block"><div class="section-title">📖 Your book</div><div style="background:linear-gradient(135deg,rgba(201,168,124,0.08),rgba(201,168,124,0.02));border:1px solid rgba(201,168,124,0.2);border-radius:14px;padding:20px;text-align:center;"><div style="font-size:32px;margin-bottom:8px;">📖</div><div style="font-family:var(--serif);font-size:17px;color:var(--text);margin-bottom:6px;">Why Your Body Won\'t Let You Earn More</div><div style="font-size:12px;color:var(--text2);margin-bottom:4px;">Dr. Tatiana D\'Angeli</div><div style="font-size:12px;color:var(--accent);margin-bottom:16px;">Coming soon — included in your Annual plan</div><button class="btn btn-primary" disabled style="width:100%;opacity:0.5;cursor:default;">Download — available soon</button></div></div>';
-  } else {
-    g('r-book').innerHTML='<div class="section-block"><div class="section-title">📖 Book: Why Your Body Won\'t Let You Earn More</div><div class="whatnext"><p>The complete guide to understanding how your nervous system controls your financial behavior. Included free with Annual plan.</p><button class="btn btn-primary" onclick="showPaywall()">Unlock with Annual — $99/year</button></div></div>';
-  }
+  } else if(hasSub){ g('r-book').innerHTML=''; }
 
   // Referral
   renderReferralBlock();
@@ -3002,50 +3050,4 @@ _sb.auth.onAuthStateChange(async(event,session)=>{
             user_id:session.user.id,
             created_at:dk+'T12:00:00Z',
             day_number:dayKeys.indexOf(dk)+1,
-            answers:d.answers&&d.answers[dk]?d.answers[dk]:{},
-            ns_state:d.days[dk],
-            body_zones:[]
-          },{onConflict:'user_id,created_at',ignoreDuplicates:true});
-        }
-      }
-    }catch(e){console.log('Checkin sync:',e)}
-
-    // Sync body map data to Supabase
-    try{
-      const bmRaw=localStorage.getItem('stress_check_final_bodymap');
-      if(bmRaw){
-        await _sb.from('body_maps').insert({
-          user_id:session.user.id,
-          data:JSON.parse(bmRaw)
-        });
-      }
-    }catch(e){console.log('BM sync:',e)}
-
-    // Save referral info
-    try{
-      const d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
-      if(d&&d.ref){
-        const{data:refProfile}=await _sb.from('profiles').select('id').eq('referral_code',d.ref).single();
-        if(refProfile){
-          await _sb.from('profiles').update({referred_by:refProfile.id}).eq('id',session.user.id);
-        }
-      }
-
-      // Get server-side referral code for this user
-      const{data:myProfile}=await _sb.from('profiles').select('referral_code').eq('id',session.user.id).single();
-      if(myProfile&&myProfile.referral_code){
-        ls('refcode',myProfile.referral_code);
-      }
-      // Sync bonus days from referrals
-      await syncReferralBonus(session.user.id);
-    }catch(e){console.log('Ref sync:',e)}
-
-    // Re-render UI with restored data
-    try{init();}catch(e){}
-  }
-  if(event==='SIGNED_OUT'){_sbUser=null;}
-});
-
-// Check for magic link token in URL hash
-(async()=>{
-  if(window.location.hash&&window.location.h
+            answe
