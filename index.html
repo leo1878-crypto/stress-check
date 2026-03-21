@@ -2651,7 +2651,7 @@ function renderAccount(){
     '<div style="display:flex;gap:16px;margin-bottom:12px;font-size:13px;color:var(--text2);">'+
     '<div>Check-ins: <span style="color:var(--text);font-weight:500;">'+numCheckins+'</span></div>'+
     (exCount>0?'<div>Exercises: <span style="color:var(--text);font-weight:500;">'+exCount+'</span></div>':'')+
-    '</div>'+calHtml+nsProfileHtml+milestonesHtml;
+    '</div>'+'<div style="margin-bottom:16px;"><button class="btn btn-ghost" style="width:100%;padding:14px;font-size:14px;" onclick="updateBodyMap()">🧍 Retake body map</button></div>'+calHtml+nsProfileHtml+milestonesHtml;
 
   // Referral
   var refEl=g('acc-referral-content');
@@ -3104,7 +3104,13 @@ _sb.auth.onAuthStateChange(async(event,session)=>{
 
     }catch(e){console.log('Checkin sync:',e)}
 
-    renderMain();
+    // Only redirect to main if user has already passed the body map intro
+    // If scr-intro is currently showing, do NOT redirect — let user finish body map
+    var introScreen=document.getElementById('scr-intro');
+    var isOnIntro=introScreen&&introScreen.classList.contains('active');
+    if(!isOnIntro && _initDone){
+      renderMain();
+    }
   }
   if(event==='SIGNED_OUT'){
     _sbUser=null;
@@ -3129,7 +3135,24 @@ function scheduleNotifications(){
 // ============================================================
 // INIT
 // ============================================================
+var _initDone=false;
+
 function init(){
+  // Version check — clear stale UI data on version bump, but PRESERVE subscription
+  var currentVersion='en-v5';
+  if(localStorage.getItem('ns_app_version')!==currentVersion){
+    var keysToRemove=[];
+    for(var i=0;i<localStorage.length;i++){
+      var key=localStorage.key(i);
+      // Only clear practice/exercise state, NOT the main data (contains subscription)
+      if(key&&(key.startsWith('practice_')||key.startsWith('exdone_')||key==='stress_check_final_bodymap')){
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(function(k){localStorage.removeItem(k)});
+    localStorage.setItem('ns_app_version',currentVersion);
+  }
+
   // Handle Stripe return
   var urlParams=new URLSearchParams(window.location.search);
   if(urlParams.get('status')==='success'&&urlParams.get('sub')){
@@ -3159,13 +3182,41 @@ function init(){
     setTimeout(authSetupOtpInputs,100);
     return;
   }
+
+  // Decide what to show
   var d=lsj('data')||{days:{},streak:0,lastDate:null,sub:null,ref:null,email:null,pwaClosed:false,notifClosed:false};
   lsj('data',d);
-  if(d.sub&&d.email){
-    verifySubscription(d.email).then(function(){renderMain();}).catch(function(){renderMain();});
+  var bmDone=localStorage.getItem('stress_check_final_bodymap');
+
+  if(Object.keys(d.days).length>0){
+    // Has checkin history — show main app
+    document.getElementById('scr-intro').classList.remove('active');
+    document.querySelector('.tab-bar').style.display='flex';
+    goTab('today');
+  } else if(bmDone){
+    // Body map done but NO checkin — restore body map result (step 4)
+    document.querySelector('.tab-bar').style.display='none';
+    document.querySelectorAll('.bm-step').forEach(function(s){s.classList.remove('on')});
+    document.getElementById('bm4').classList.add('on');
+    try{
+      var saved=JSON.parse(bmDone);
+      BM.zones=new Set(saved.zones||[]);
+      BM.sens={};
+      if(saved.sens){Object.entries(saved.sens).forEach(function(pair){BM.sens[pair[0]]=new Set(Array.isArray(pair[1])?pair[1]:Object.values(pair[1]))});}
+      BM.dur=saved.dur||{};
+      BM.ctx=saved.ctx||[];
+      bmRender();
+    }catch(e){
+      document.querySelectorAll('.bm-step').forEach(function(s){s.classList.remove('on')});
+      document.getElementById('bm1').classList.add('on');
+    }
   } else {
-    renderMain();
+    // Fresh start — show body map (scr-intro is already active in HTML)
+    document.querySelector('.tab-bar').style.display='none';
   }
+
+  _initDone=true;
+
   // Check referral param
   checkRef();
   // Register SW with update banner
