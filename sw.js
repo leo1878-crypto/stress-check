@@ -1,46 +1,59 @@
-const CACHE_NAME = 'ns-en-v4';
+// ============================================================
+// sw.js — Service Worker for EN PWA (drdangeli.com)
+// IMPORTANT: increment CACHE_NAME with every index.html update!
+// ============================================================
+
+const CACHE_NAME = 'ns-en-v2';
 const ASSETS = [
   '/',
-  '/index.html'
+  '/index.html',
+  '/manifest.json'
 ];
 
-// Install — cache core assets
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+// Install — cache core files
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(ASSETS).catch(err => {
+        console.warn('Cache addAll failed:', err);
+      });
+    })
   );
+  self.skipWaiting();
 });
 
-// Activate — clean old caches
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
+// Activate — delete old caches
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys => {
+      return Promise.all(
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+      );
+    })
   );
+  self.clients.claim();
 });
 
-// Fetch — network first, fallback to cache
-self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
-  // Skip API calls and external requests
-  if (e.request.url.includes('/api/') || !e.request.url.startsWith(self.location.origin)) return;
-  
-  e.respondWith(
-    fetch(e.request)
+// Fetch — network-first strategy (always fresh data, cache as fallback)
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    fetch(event.request)
       .then(response => {
-        // Update cache with fresh response
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+        if (response.ok && event.request.method === 'GET') {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
         return response;
       })
-      .catch(() => caches.match(e.request))
+      .catch(() => {
+        return caches.match(event.request);
+      })
   );
 });
 
-// Listen for SKIP_WAITING message from the app
-self.addEventListener('message', e => {
-  if (e.data && e.data.type === 'SKIP_WAITING') {
+// Skip waiting — for instant update when new version is available
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 });
