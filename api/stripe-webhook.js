@@ -36,13 +36,16 @@ export default async function handler(req) {
 
     // FIX: Determine plan by amount instead of metadata (metadata.plan is often empty with Payment Links)
     const amountTotal = session.amount_total || 0;
-    let plan = 'base';
-    if (amountTotal >= 9900) {
-      plan = 'yearly';
-    } else if (amountTotal >= 1490) {
-      plan = 'full';
+    // One-time prices: $5.90=590 week_promo, $7.90=790 week, $9.90=990 month, $139=13900 year
+    let plan = 'week_promo';
+    if (amountTotal >= 13900) {
+      plan = 'year';
     } else if (amountTotal >= 990) {
-      plan = 'base';
+      plan = 'month';
+    } else if (amountTotal >= 700) {
+      plan = 'week';
+    } else {
+      plan = 'week_promo';
     }
     // Also check metadata as fallback
     if (session.metadata && session.metadata.plan) {
@@ -51,10 +54,12 @@ export default async function handler(req) {
 
     // Calculate expires_at based on plan
     const expiresAt = new Date(now);
-    if (plan === 'annual' || plan === 'yearly') {
-      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    if (plan === 'year') {
+      expiresAt.setDate(expiresAt.getDate() + 366);
+    } else if (plan === 'month') {
+      expiresAt.setDate(expiresAt.getDate() + 31);
     } else {
-      expiresAt.setDate(expiresAt.getDate() + 30);
+      expiresAt.setDate(expiresAt.getDate() + 7);
     }
 
     if (email) {
@@ -230,7 +235,7 @@ export default async function handler(req) {
       // STEP 5: REFERRAL BONUS
       // ============================================================
       if (userProfile && userProfile.referred_by) {
-        const bonusDays = (plan === 'annual' || plan === 'yearly') ? 10 : plan === 'full' ? 5 : 3;
+        const bonusDays = (plan === 'year') ? 10 : plan === 'month' ? 5 : 3;
 
         try {
           const refRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userProfile.referred_by}&select=id,bonus_days,referral_count,bonus_cycle_used`, {
