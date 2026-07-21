@@ -689,8 +689,6 @@ function bmView(v,btn){document.querySelectorAll('.bm-vt').forEach(function(b){b
           <input type="tel" maxlength="1" class="auth-otp-digit" data-idx="3" inputmode="numeric">
           <input type="tel" maxlength="1" class="auth-otp-digit" data-idx="4" inputmode="numeric">
           <input type="tel" maxlength="1" class="auth-otp-digit" data-idx="5" inputmode="numeric">
-          <input type="tel" maxlength="1" class="auth-otp-digit" data-idx="6" inputmode="numeric">
-          <input type="tel" maxlength="1" class="auth-otp-digit" data-idx="7" inputmode="numeric">
         </div>
         <div class="auth-status" id="auth-otp-status"></div>
         <div class="auth-resend" id="auth-resend">
@@ -3250,17 +3248,17 @@ function authSetupOtpInputs() {
     inp.oninput = function() {
       var val = this.value.replace(/\D/g, '');
       this.value = val.slice(0, 1);
-      if (val && idx < 7) digits[idx + 1].focus();
+      if (val && idx < 5) digits[idx + 1].focus();
       var code = Array.from(digits).map(function(d) { return d.value; }).join('');
-      if (code.length === 8) authVerifyOtp(code);
+      if (code.length === 6) authVerifyOtp(code);
     };
     inp.onpaste = function(e) {
       e.preventDefault();
       var paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
-      if (paste.length >= 8) {
-        for (var i = 0; i < 8; i++) digits[i].value = paste[i] || '';
-        digits[7].focus();
-        authVerifyOtp(paste.slice(0, 8));
+      if (paste.length >= 6) {
+        for (var i = 0; i < 6; i++) digits[i].value = paste[i] || '';
+        digits[5].focus();
+        authVerifyOtp(paste.slice(0, 6));
       }
     };
     inp.onkeydown = function(e) {
