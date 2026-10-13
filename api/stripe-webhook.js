@@ -29,6 +29,31 @@ export default async function handler(req) {
   // ============================================================
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
+
+    // Method 4R landing (/metod4r) — must NOT grant check-in subscription
+    // (amount 7000 would otherwise match the "week" plan threshold >= 700).
+    // Markers set by api/checkout.js: product / source / flow / client_reference_id.
+    const meta0 = session.metadata || {};
+    const ref0 = String(session.client_reference_id || '');
+    const isMetod4rLanding =
+      meta0.product === 'metod4r_usd' ||
+      meta0.source === 'metod4r_landing' ||
+      meta0.flow === 'landing_metod4r' ||
+      ref0.indexOf('metod4r-') === 0;
+    if (isMetod4rLanding) {
+      // Ops alert for Method 4R is handled on bot.tatyanadangeli.com/webhooks/stripe.
+      // This endpoint only acknowledges and skips check-in fulfillment.
+      console.log(
+        'metod4r_landing ignored for check-in (bot owns this flow)',
+        session.id,
+        meta0.email || session.customer_email || ''
+      );
+      return new Response(JSON.stringify({ received: true, ignored: 'metod4r_landing' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const email = session.customer_email || (session.customer_details && session.customer_details.email) || (session.metadata && session.metadata.email) || '';
     const customerId = session.customer || '';
     const subscriptionId = session.subscription || '';

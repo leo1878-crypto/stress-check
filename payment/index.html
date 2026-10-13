@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pay — Method 4R (USD)</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:#f6f4f1;color:#1e1929}
+    .wrap{max-width:480px;margin:40px auto;padding:24px;background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.06)}
+    h1{font-size:22px;margin:0 0 8px}
+    p{color:#555;line-height:1.45}
+    label{display:block;font-size:13px;margin:14px 0 6px;font-weight:600}
+    input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:16px}
+    button{margin-top:20px;width:100%;padding:14px;border:0;border-radius:8px;background:#c9a227;color:#1e1929;font-weight:700;font-size:16px;cursor:pointer}
+    button:disabled{opacity:.6;cursor:wait}
+    .err{background:#fde8e8;color:#8a1f1f;padding:10px 12px;border-radius:8px;margin:12px 0;display:none}
+    .price{font-size:28px;font-weight:800;margin:8px 0 0}
+    a{color:#1e1929}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Method 4R</h1>
+  <p>International payment · Angel Mind LLC · Stripe</p>
+  <div class="price">$70&nbsp;USD</div>
+  <div class="err" id="err" role="alert"></div>
+  <form id="pay" novalidate>
+    <label for="first_name">First name</label>
+    <input id="first_name" name="first_name" autocomplete="given-name" required>
+    <label for="last_name">Last name</label>
+    <input id="last_name" name="last_name" autocomplete="family-name" required>
+    <label for="phone">Phone</label>
+    <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="+1…" required>
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" autocomplete="email" required>
+    <button type="submit" id="submit">Continue to payment</button>
+  </form>
+  <p style="margin-top:18px;font-size:13px">
+    <a href="/metod4r/">← Back to course</a> ·
+    <a href="/privacy/">Privacy Policy</a>
+  </p>
+</div>
+<script>
+(function () {
+  var form = document.getElementById('pay');
+  var err = document.getElementById('err');
+  var btn = document.getElementById('submit');
+
+  function showError(msg) {
+    err.textContent = msg;
+    err.style.display = 'block';
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    err.style.display = 'none';
+    var first = form.first_name.value.trim();
+    var last = form.last_name.value.trim();
+    var phone = form.phone.value.trim();
+    var email = form.email.value.trim();
+    if (!first || !last || !phone || !email) {
+      showError('Please fill in first name, last name, phone, and email.');
+      return;
+    }
+    btn.disabled = true;
+    try {
+      var res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          first_name: first,
+          last_name: last,
+          phone: phone,
+          email: email
+        })
+      });
+      var data = await res.json().catch(function () { return {}; });
+      if (!res.ok || !data.url) {
+        showError(data.error || 'Checkout is not available yet. Please try again later.');
+        btn.disabled = false;
+        return;
+      }
+      window.location.href = data.url;
+    } catch (ex) {
+      showError('Network error. Please try again.');
+      btn.disabled = false;
+    }
+  });
+})();
+</script>
+</body>
+</html>
