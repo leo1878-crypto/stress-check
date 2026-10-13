@@ -4,5 +4,13 @@
       "path": "/api/cron-emails",
       "schedule": "0 8 * * *"
     }
+  ],
+  "rewrites": [
+    { "source": "/metod4r", "destination": "/metod4r/index.html" },
+    { "source": "/metod4r/", "destination": "/metod4r/index.html" },
+    { "source": "/privacy", "destination": "/privacy/index.html" },
+    { "source": "/privacy/", "destination": "/privacy/index.html" },
+    { "source": "/payment", "destination": "/payment/index.html" },
+    { "source": "/payment/", "destination": "/payment/index.html" }
   ]
 }
