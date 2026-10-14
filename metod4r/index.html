@@ -568,70 +568,75 @@ body{padding-bottom:110px !important}
     top:209px !important;width:300px !important;height:auto !important;white-space:nowrap !important;
   }
 }
-/* Mobile footer: taller artboard + room for legal links, socials, copyright */
+/* Mobile footer: taller artboard + true viewport centering (ignore Tilda artboard offsets) */
 @media screen and (max-width: 640px) {
   #rec2479806941 .t396__artboard,
   #rec2479806941 .t396__filter,
   #rec2479806941 .t396__carrier{height:560px !important;}
-  #rec2479806941 .t396__elem[data-elem-id="1754340828120"],
-  #rec2479806941 .t396__elem[data-elem-id="1754340828126"],
-  #rec2479806941 .t396__elem[data-elem-id="1780047375836000001"],
-  #rec2479806941 .t396__elem[data-elem-id="1754560706991"],
-  #rec2479806941 .t396__elem[data-elem-id="1754560728438"],
-  #rec2479806941 .t396__elem[data-elem-id="1780043307197000003"],
-  #rec2479806941 .t396__elem[data-elem-id="1754560730109"],
-  #rec2479806941 .t396__elem[data-elem-id="1754340828135"] {
-    text-align: center !important;
-  }
-  #rec2479806941 .t396__elem[data-elem-id="1754340828120"] .tn-atom,
-  #rec2479806941 .t396__elem[data-elem-id="1754340828126"] .tn-atom,
-  #rec2479806941 .t396__elem[data-elem-id="1780047375836000001"] .tn-atom,
-  #rec2479806941 .t396__elem[data-elem-id="1754560706991"] .tn-atom,
-  #rec2479806941 .t396__elem[data-elem-id="1754560728438"] .tn-atom,
-  #rec2479806941 .t396__elem[data-elem-id="1780043307197000003"] .tn-atom,
-  #rec2479806941 .t396__elem[data-elem-id="1754560730109"] .tn-atom,
-  #rec2479806941 .t396__elem[data-elem-id="1754340828135"] .tn-atom {
-    text-align: center !important;
-  }
-  /* Phones/contacts: Tilda left:109 + width:auto shifts the block; force full-width center */
+
+  /* Shared: center a 288px column on the viewport */
+  #rec2479806941 .tn-elem[data-elem-id="1754340828116"],
+  #rec2479806941 .tn-elem[data-elem-id="1754340828120"],
   #rec2479806941 .tn-elem[data-elem-id="1754340828126"],
-  #rec2479806941 .tn-elem[data-elem-id="1780047375836000001"] {
-    left: calc(50% - 160px + 16px) !important;
+  #rec2479806941 .tn-elem[data-elem-id="1780047375836000001"],
+  #rec2479806941 .tn-elem[data-elem-id="1780047606894000001"],
+  #rec2479806941 .tn-elem[data-elem-id="1754560706991"],
+  #rec2479806941 .tn-elem[data-elem-id="1754560728438"],
+  #rec2479806941 .tn-elem[data-elem-id="1780043307197000003"],
+  #rec2479806941 .tn-elem[data-elem-id="1754560730109"],
+  #rec2479806941 .tn-elem[data-elem-id="1754340828135"] {
+    left: 50% !important;
+    margin-left: -144px !important;
     width: 288px !important;
     text-align: center !important;
   }
+  #rec2479806941 .tn-elem[data-elem-id="1754340828116"] .tn-atom,
+  #rec2479806941 .tn-elem[data-elem-id="1754340828120"] .tn-atom,
   #rec2479806941 .tn-elem[data-elem-id="1754340828126"] .tn-atom,
-  #rec2479806941 .tn-elem[data-elem-id="1780047375836000001"] .tn-atom {
+  #rec2479806941 .tn-elem[data-elem-id="1780047375836000001"] .tn-atom,
+  #rec2479806941 .tn-elem[data-elem-id="1780047606894000001"] .tn-atom,
+  #rec2479806941 .tn-elem[data-elem-id="1754560706991"] .tn-atom,
+  #rec2479806941 .tn-elem[data-elem-id="1754560728438"] .tn-atom,
+  #rec2479806941 .tn-elem[data-elem-id="1780043307197000003"] .tn-atom,
+  #rec2479806941 .tn-elem[data-elem-id="1754560730109"] .tn-atom,
+  #rec2479806941 .tn-elem[data-elem-id="1754340828135"] .tn-atom {
     text-align: center !important;
     white-space: normal !important;
     display: block !important;
     width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
-  #rec2479806941 .tn-elem[data-elem-id="1754560706991"]{
-    top:295px !important;left:calc(50% - 160px + 16px) !important;width:288px !important;white-space:normal !important;
+
+  /* Logo is a shape — keep proportional, still viewport-centered */
+  #rec2479806941 .tn-elem[data-elem-id="1754340828116"] {
+    width: 160px !important;
+    margin-left: -80px !important;
   }
-  #rec2479806941 .tn-elem[data-elem-id="1754560728438"]{
-    top:328px !important;left:calc(50% - 160px + 16px) !important;width:288px !important;white-space:normal !important;
+  /* Care CTA is shorter */
+  #rec2479806941 .tn-elem[data-elem-id="1780047606894000001"] {
+    width: 200px !important;
+    margin-left: -100px !important;
   }
-  #rec2479806941 .tn-elem[data-elem-id="1780043307197000003"]{
-    top:361px !important;left:calc(50% - 160px + 16px) !important;width:288px !important;white-space:normal !important;
+
+  #rec2479806941 .tn-elem[data-elem-id="1754560706991"]{ top:295px !important; }
+  #rec2479806941 .tn-elem[data-elem-id="1754560728438"]{ top:328px !important; }
+  #rec2479806941 .tn-elem[data-elem-id="1780043307197000003"]{ top:361px !important; }
+  #rec2479806941 .tn-elem[data-elem-id="1754560730109"]{ top:394px !important; }
+  #rec2479806941 .tn-elem[data-elem-id="1754340828135"]{ top:500px !important; }
+
+  /* Social icons: 28px × 3 + 24px × 2 gaps = 132px group, centered on 50% */
+  #rec2479806941 .tn-elem[data-elem-id="1754340828144"],
+  #rec2479806941 .tn-elem[data-elem-id="1780042779667000001"],
+  #rec2479806941 .tn-elem[data-elem-id="1754340828155"] {
+    top: 450px !important;
+    width: 28px !important;
+    height: 28px !important;
+    left: 50% !important;
   }
-  #rec2479806941 .tn-elem[data-elem-id="1754560730109"]{
-    top:394px !important;left:calc(50% - 160px + 16px) !important;width:288px !important;white-space:normal !important;
-  }
-  /* Socials + copyright below legal links */
-  #rec2479806941 .tn-elem[data-elem-id="1754340828144"]{
-    top:450px !important;left:calc(50% - 160px + 94px) !important;
-  }
-  #rec2479806941 .tn-elem[data-elem-id="1780042779667000001"]{
-    top:450px !important;left:calc(50% - 160px + 146px) !important;
-  }
-  #rec2479806941 .tn-elem[data-elem-id="1754340828155"]{
-    top:450px !important;left:calc(50% - 160px + 198px) !important;
-  }
-  #rec2479806941 .tn-elem[data-elem-id="1754340828135"]{
-    top:500px !important;left:calc(50% - 160px + 16px) !important;width:288px !important;
-  }
+  #rec2479806941 .tn-elem[data-elem-id="1754340828144"]{ margin-left: -66px !important; }
+  #rec2479806941 .tn-elem[data-elem-id="1780042779667000001"]{ margin-left: -14px !important; }
+  #rec2479806941 .tn-elem[data-elem-id="1754340828155"]{ margin-left: 38px !important; }
 }
 </style>
 <div class="kz-paybar" role="region" aria-label="USD payment">
